@@ -328,7 +328,7 @@ export function criarBlobCSV(csv: string): Blob {
 /**
  * Gera nome de arquivo com timestamp
  */
-export function gerarNomeArquivo(tipo: 'pdf' | 'csv' = 'pdf'): string {
+export function gerarNomeArquivo(tipo: 'pdf' | 'csv' | 'xlsx' = 'pdf'): string {
   const agora = new Date();
   const timestamp = agora.toISOString().split('T')[0];
   return `relatorio-avaliacoes-${timestamp}.${tipo}`;

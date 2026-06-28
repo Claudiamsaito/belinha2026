@@ -17,7 +17,7 @@ import { LineChartTrends } from '@/components/charts/line-chart-trends';
 import { BarChartUnits } from '@/components/charts/bar-chart-units';
 import { useColors } from '@/hooks/use-colors';
 import { carregarAvaliacoes, type Avaliacao } from '@/lib/avaliacoes-store';
-import { obterTodasAvaliacoesBackend } from '@/lib/api';
+import { obterTodasAvaliacoesBackend, downloadExcelBackend } from '@/lib/api';
 import { UNIDADES } from '@/components/unidades-map';
 import {
   gerarRelatorioCompleto,
@@ -177,6 +177,39 @@ export default function AdvancedReportsScreen() {
     } catch (error) {
       console.error('Erro ao exportar CSV:', error);
       Alert.alert('Erro', 'Não foi possível exportar o CSV');
+    } finally {
+      setExportando(false);
+    }
+  };
+
+  const exportarExcel = async () => {
+    if (!relatorio) return;
+
+    if (Platform.OS !== 'web') {
+      Alert.alert(
+        'Excel indisponível no app',
+        'O download de Excel está disponível na versão web. No app, use a exportação CSV.',
+        [{ text: 'OK' }]
+      );
+      return;
+    }
+
+    try {
+      setExportando(true);
+      const blob = await downloadExcelBackend();
+      const nomeArquivo = gerarNomeArquivo('xlsx');
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = nomeArquivo;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      await registrarAuditoria('admin', 'export_excel', `Relatório ${relatorio.periodoInicio} a ${relatorio.periodoFim}`);
+    } catch (error) {
+      console.error('Erro ao exportar Excel:', error);
+      Alert.alert('Erro', 'Não foi possível exportar o Excel. Verifique se o backend está rodando.');
     } finally {
       setExportando(false);
     }
@@ -355,6 +388,19 @@ export default function AdvancedReportsScreen() {
           {/* Botões de Exportação */}
           <View style={styles.exportSection}>
             <Text style={[styles.sectionTitle, { color: colors.foreground }]}>📥 Exportar Dados</Text>
+
+            <Pressable
+              onPress={exportarExcel}
+              disabled={exportando}
+              style={[
+                styles.exportButton,
+                { backgroundColor: '#1D6F42', opacity: exportando ? 0.6 : 1 },
+              ]}
+            >
+              <Text style={[styles.buttonText, { color: 'white' }]}>
+                {exportando ? 'Exportando...' : '📗 Exportar Excel (Backend)'}
+              </Text>
+            </Pressable>
 
             <Pressable
               onPress={exportarPDF}

@@ -190,6 +190,21 @@ export async function obterAuditLogsBackend(limite = 100): Promise<any[]> {
   return apiFetch(`/api/admin/audit?limite=${limite}`, {}, true);
 }
 
+export async function downloadExcelBackend(periodo?: string): Promise<Blob> {
+  const base = getBackendUrl();
+  const q = periodo ? `?periodo=${periodo}` : "";
+  const url = `${base}/api/admin/export/excel${q}`;
+  const token = await getToken();
+  const headers: Record<string, string> = {};
+  if (token) headers["Authorization"] = `Bearer ${token}`;
+  const resp = await fetch(url, { headers });
+  if (!resp.ok) {
+    const err = await resp.json().catch(() => ({ erro: resp.statusText }));
+    throw new Error((err as any).erro || `Erro ${resp.status}`);
+  }
+  return resp.blob();
+}
+
 export function getExcelDownloadUrl(periodo?: string): string {
   const base = getBackendUrl();
   const q = periodo ? `?periodo=${periodo}` : "";
