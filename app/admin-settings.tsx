@@ -1,5 +1,3 @@
-'use client';
-
 import { useRouter } from 'expo-router';
 import { useState, useEffect } from 'react';
 import {
@@ -26,8 +24,8 @@ export default function AdminSettingsScreen() {
   const [carregando, setCarregando] = useState(false);
   const [mostrarSenhas, setMostrarSenhas] = useState(false);
   const [nomeAdmin, setNomeAdmin] = useState('');
+  const [emailAdmin, setEmailAdmin] = useState('');
 
-  // Carregar informações do admin ao montar
   useEffect(() => {
     carregarInfoAdmin();
   }, []);
@@ -36,6 +34,7 @@ export default function AdminSettingsScreen() {
     try {
       const estado = await obterEstadoAuth();
       setNomeAdmin(estado.username || 'Administrador');
+      setEmailAdmin(estado.email || '');
     } catch (error) {
       console.error('Erro ao carregar informações do admin:', error);
     }
@@ -84,26 +83,20 @@ export default function AdminSettingsScreen() {
 
     setCarregando(true);
     try {
-      const sucesso = await alterarSenha(senhaAtual, novaSenha);
-
-      if (sucesso) {
-        Alert.alert('Sucesso', 'Senha alterada com sucesso!', [
-          {
-            text: 'OK',
-            onPress: () => {
-              setSenhaAtual('');
-              setNovaSenha('');
-              setConfirmarSenha('');
-              router.back();
-            },
+      await alterarSenha(senhaAtual, novaSenha);
+      Alert.alert('Sucesso', 'Senha alterada com sucesso!', [
+        {
+          text: 'OK',
+          onPress: () => {
+            setSenhaAtual('');
+            setNovaSenha('');
+            setConfirmarSenha('');
+            router.back();
           },
-        ]);
-      } else {
-        Alert.alert('Erro', 'Senha atual incorreta');
-      }
-    } catch (error) {
-      console.error('Erro ao alterar senha:', error);
-      Alert.alert('Erro', 'Ocorreu um erro ao alterar a senha');
+        },
+      ]);
+    } catch (error: any) {
+      Alert.alert('Erro', error?.message || 'Ocorreu um erro ao alterar a senha');
     } finally {
       setCarregando(false);
     }
@@ -129,6 +122,11 @@ export default function AdminSettingsScreen() {
             <Text style={{ fontSize: 12, color: colors.muted, marginTop: 4 }}>
               Usuário: <Text style={{ fontWeight: '600' }}>{nomeAdmin}</Text>
             </Text>
+            {emailAdmin ? (
+              <Text style={{ fontSize: 12, color: colors.muted, marginTop: 2 }}>
+                {emailAdmin}
+              </Text>
+            ) : null}
           </View>
 
           {/* Card de alteração de senha */}

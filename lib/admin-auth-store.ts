@@ -105,13 +105,8 @@ export async function obterEstadoAuth(): Promise<AdminAuthState> {
   return { isAuthenticated: false, username: null, email: null, loginTime: null };
 }
 
-export async function alterarSenha(senhaAtual: string, novaSenha: string): Promise<boolean> {
-  try {
-    await alterarSenhaBackend(senhaAtual, novaSenha);
-    return true;
-  } catch {
-    return false;
-  }
+export async function alterarSenha(senhaAtual: string, novaSenha: string): Promise<void> {
+  await alterarSenhaBackend(senhaAtual, novaSenha);
 }
 
 // Mantido por compatibilidade — não faz nada no novo fluxo
