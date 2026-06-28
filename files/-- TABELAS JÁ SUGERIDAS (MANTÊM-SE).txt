@@ -1,0 +1,40 @@
+-- TABELAS JÁ SUGERIDAS (MANTÊM-SE)
+-- CREATE TABLE unidades_saude (...)
+-- CREATE TABLE profissionais_saude (...)
+-- CREATE TABLE tipos_atendimento (...)
+-- CREATE TABLE atendimentos (...)
+
+-- Nova Tabela para as Perguntas da Pesquisa (para gerenciar as perguntas no seu sistema)
+CREATE TABLE perguntas_pesquisa (
+    id SERIAL PRIMARY KEY,
+    texto_pergunta TEXT NOT NULL,
+    tipo_resposta VARCHAR(50) NOT NULL, -- Ex: 'escala_likert', 'texto_livre', 'sim_nao', 'multipla_escolha'
+    opcoes_resposta TEXT, -- JSON ou TEXTO com opções, se for múltipla escolha/escala
+    ordem INTEGER NOT NULL, -- Ordem da pergunta na pesquisa
+    ativa BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Nova Tabela para as Sessões de Pesquisa (para rastrear o progresso de cada paciente)
+CREATE TABLE sessoes_pesquisa (
+    id SERIAL PRIMARY KEY,
+    numero_whatsapp VARCHAR(50) NOT NULL, -- Número do paciente no formato WhatsApp (ex: 5511987654321)
+    id_atendimento INTEGER REFERENCES atendimentos(id), -- Vincula a pesquisa a um atendimento específico
+    status VARCHAR(50) NOT NULL, -- Ex: 'iniciada', 'em_progresso', 'concluida', 'cancelada'
+    pergunta_atual_id INTEGER REFERENCES perguntas_pesquisa(id), -- Qual pergunta o paciente está respondendo agora
+    data_inicio TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    data_fim TIMESTAMP WITH TIME ZONE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Nova Tabela para as Respostas da Pesquisa
+CREATE TABLE respostas_pesquisa (
+    id SERIAL PRIMARY KEY,
+    id_sessao_pesquisa INTEGER REFERENCES sessoes_pesquisa(id) ON DELETE CASCADE NOT NULL,
+    id_pergunta INTEGER REFERENCES perguntas_pesquisa(id) NOT NULL,
+    resposta_texto TEXT, -- Para respostas de texto livre ou opções escolhidas
+    resposta_valor_numerico INTEGER, -- Para escalas Likert ou outras respostas numéricas
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE (id_sessao_pesquisa, id_pergunta) -- Garante uma única resposta por pergunta por sessão
+);

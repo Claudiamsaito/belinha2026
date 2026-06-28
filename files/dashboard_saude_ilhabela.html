@@ -1,0 +1,1058 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard — Satisfação Unidades de Saúde · Ilhabela</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+  :root {
+    --bg: #0a0f1e;
+    --surface: #111827;
+    --surface2: #1a2235;
+    --border: #1e2d45;
+    --accent: #00d4ff;
+    --accent2: #7c3aed;
+    --accent3: #10b981;
+    --warn: #f59e0b;
+    --danger: #ef4444;
+    --text: #e2e8f0;
+    --muted: #64748b;
+    --otimo: #10b981;
+    --bom: #3b82f6;
+    --regular: #f59e0b;
+    --ruim: #f97316;
+    --pessimo: #ef4444;
+    --ns: #6b7280;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ─── HEADER ─── */
+  header {
+    background: linear-gradient(135deg, #0d1b3e 0%, #0a0f1e 60%);
+    border-bottom: 1px solid var(--border);
+    padding: 28px 40px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky; top: 0; z-index: 100;
+    backdrop-filter: blur(12px);
+  }
+  header .brand { display: flex; align-items: center; gap: 16px; }
+  header .logo {
+    width: 44px; height: 44px;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 22px;
+  }
+  header h1 {
+    font-family: 'Syne', sans-serif;
+    font-size: 20px; font-weight: 800;
+    letter-spacing: -0.5px;
+    line-height: 1.2;
+  }
+  header h1 span { color: var(--accent); }
+  header .subtitle { font-size: 12px; color: var(--muted); margin-top: 2px; }
+  header .period-badge {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 8px 16px;
+    font-size: 12px; color: var(--muted);
+    display: flex; align-items: center; gap: 8px;
+  }
+  header .period-badge .dot {
+    width: 7px; height: 7px; border-radius: 50%;
+    background: var(--accent3);
+    box-shadow: 0 0 8px var(--accent3);
+    animation: pulse 2s infinite;
+  }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+
+  /* ─── FILTERS ─── */
+  .filters-bar {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 16px 40px;
+    display: flex; align-items: center; gap: 16px; flex-wrap: wrap;
+  }
+  .filters-bar label { font-size: 12px; color: var(--muted); font-weight: 500; }
+  .filters-bar select {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 8px 32px 8px 14px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-family: 'DM Sans', sans-serif;
+    cursor: pointer;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%2364748b' stroke-width='2' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    transition: border-color .2s;
+  }
+  .filters-bar select:focus { outline: none; border-color: var(--accent); }
+  .btn-reset {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all .2s;
+    font-family: 'DM Sans', sans-serif;
+  }
+  .btn-reset:hover { border-color: var(--accent); color: var(--accent); }
+
+  /* ─── MAIN GRID ─── */
+  main { padding: 32px 40px; max-width: 1600px; margin: 0 auto; }
+
+  /* ─── KPI CARDS ─── */
+  .kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 16px;
+    margin-bottom: 32px;
+  }
+  .kpi {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 24px 20px;
+    position: relative;
+    overflow: hidden;
+    transition: transform .2s, border-color .2s;
+  }
+  .kpi:hover { transform: translateY(-3px); border-color: var(--accent); }
+  .kpi::before {
+    content: '';
+    position: absolute; top: 0; left: 0; right: 0; height: 3px;
+    background: var(--kpi-color, var(--accent));
+    border-radius: 16px 16px 0 0;
+  }
+  .kpi-icon { font-size: 24px; margin-bottom: 12px; }
+  .kpi-value {
+    font-family: 'Syne', sans-serif;
+    font-size: 36px; font-weight: 800;
+    color: var(--kpi-color, var(--accent));
+    line-height: 1;
+  }
+  .kpi-label { font-size: 12px; color: var(--muted); margin-top: 6px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px; }
+  .kpi-sub { font-size: 11px; color: var(--muted); margin-top: 4px; }
+
+  /* ─── SECTION TITLE ─── */
+  .section-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 14px; font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: var(--muted);
+    margin-bottom: 16px;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .section-title::after {
+    content: '';
+    flex: 1; height: 1px;
+    background: var(--border);
+  }
+
+  /* ─── CHART CARDS ─── */
+  .chart-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 24px;
+    transition: border-color .2s;
+  }
+  .chart-card:hover { border-color: #2a3a55; }
+  .chart-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 15px; font-weight: 700;
+    margin-bottom: 4px;
+  }
+  .chart-desc { font-size: 12px; color: var(--muted); margin-bottom: 20px; }
+
+  /* ─── GRID LAYOUTS ─── */
+  .row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px; }
+  .row-3 { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; margin-bottom: 20px; }
+  .row-full { margin-bottom: 20px; }
+  @media(max-width: 1100px) { .row-2, .row-3 { grid-template-columns: 1fr; } }
+
+  /* ─── RANKING TABLE ─── */
+  .ranking-table { width: 100%; border-collapse: collapse; }
+  .ranking-table th {
+    font-size: 11px; text-transform: uppercase; letter-spacing: 1px;
+    color: var(--muted); padding: 10px 12px; text-align: left;
+    border-bottom: 1px solid var(--border);
+  }
+  .ranking-table td {
+    padding: 14px 12px; border-bottom: 1px solid #15202f;
+    font-size: 13px; vertical-align: middle;
+  }
+  .ranking-table tr:last-child td { border-bottom: none; }
+  .ranking-table tr:hover td { background: rgba(255,255,255,0.02); }
+  .rank-num {
+    width: 28px; height: 28px; border-radius: 8px;
+    background: var(--surface2);
+    display: inline-flex; align-items: center; justify-content: center;
+    font-family: 'Syne', sans-serif; font-weight: 700; font-size: 13px;
+  }
+  .rank-1 { background: linear-gradient(135deg,#f59e0b,#d97706); color: #000; }
+  .rank-2 { background: linear-gradient(135deg,#94a3b8,#64748b); color: #000; }
+  .rank-3 { background: linear-gradient(135deg,#c2855a,#92553a); color: #fff; }
+  .score-bar-wrap { display: flex; align-items: center; gap: 10px; }
+  .score-bar-bg { flex: 1; height: 6px; background: var(--surface2); border-radius: 99px; }
+  .score-bar-fill { height: 6px; border-radius: 99px; background: var(--accent3); }
+  .score-num {
+    font-family: 'Syne', sans-serif; font-weight: 700; font-size: 15px;
+    color: var(--accent3); min-width: 32px;
+  }
+  .tag-count {
+    background: var(--surface2); border-radius: 6px;
+    padding: 3px 8px; font-size: 11px; color: var(--muted);
+  }
+
+  /* ─── HEATMAP ─── */
+  .heatmap-table { width: 100%; border-collapse: collapse; }
+  .heatmap-table th {
+    font-size: 11px; text-transform: uppercase; letter-spacing: 1px;
+    color: var(--muted); padding: 8px 12px; text-align: center;
+    border-bottom: 1px solid var(--border);
+  }
+  .heatmap-table th:first-child { text-align: left; }
+  .heatmap-table td {
+    padding: 10px 12px; font-size: 12px; text-align: center;
+    border-bottom: 1px solid #15202f;
+  }
+  .heatmap-table td:first-child { text-align: left; font-size: 12px; color: var(--text); }
+  .heatmap-cell {
+    display: inline-block; padding: 5px 14px; border-radius: 8px;
+    font-family: 'Syne', sans-serif; font-weight: 700; font-size: 13px;
+  }
+
+  /* ─── WORD CLOUD ─── */
+  .word-cloud { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; padding: 8px 0; }
+  .word-tag {
+    border-radius: 8px; padding: 5px 12px;
+    font-weight: 500; cursor: default;
+    transition: transform .15s;
+    white-space: nowrap;
+  }
+  .word-tag:hover { transform: scale(1.08); }
+
+  /* ─── COMMENTS ─── */
+  .comments-list { display: flex; flex-direction: column; gap: 10px; max-height: 380px; overflow-y: auto; padding-right: 4px; }
+  .comments-list::-webkit-scrollbar { width: 4px; }
+  .comments-list::-webkit-scrollbar-track { background: transparent; }
+  .comments-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 99px; }
+  .comment-item {
+    background: var(--surface2);
+    border-left: 3px solid var(--accent);
+    border-radius: 0 10px 10px 0;
+    padding: 12px 14px;
+    font-size: 13px; line-height: 1.55;
+    color: #cbd5e1;
+  }
+  .comment-unit { font-size: 10px; color: var(--muted); margin-top: 6px; text-transform: uppercase; letter-spacing: 0.5px; }
+  .comment-search {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 10px 14px;
+    border-radius: 10px;
+    font-size: 13px;
+    width: 100%;
+    font-family: 'DM Sans', sans-serif;
+    margin-bottom: 14px;
+  }
+  .comment-search:focus { outline: none; border-color: var(--accent); }
+
+  /* ─── P04 LEGEND ─── */
+  .legend-item { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--muted); margin-bottom: 6px; }
+  .legend-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+
+  /* ─── FOOTER ─── */
+  footer {
+    text-align: center; padding: 28px;
+    font-size: 11px; color: var(--muted);
+    border-top: 1px solid var(--border);
+    margin-top: 20px;
+  }
+
+  /* ─── ANIMATIONS ─── */
+  .fade-in { animation: fadeIn .4s ease; }
+  @keyframes fadeIn { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
+</style>
+</head>
+<body>
+
+<!-- ═══ HEADER ═══ -->
+<header>
+  <div class="brand">
+    <div class="logo">🏥</div>
+    <div>
+      <h1>Saúde <span>Ilhabela</span> · Dashboard</h1>
+      <div class="subtitle">Pesquisa de Satisfação — Unidades de Saúde</div>
+    </div>
+  </div>
+  <div class="period-badge" id="period-badge">
+    <div class="dot"></div>
+    <span id="period-text">jan–mar 2026 · 563 registros</span>
+  </div>
+</header>
+
+<!-- ═══ FILTERS ═══ -->
+<div class="filters-bar">
+  <label>FILTROS</label>
+  <select id="filterUnit">
+    <option value="">Todas as unidades</option>
+  </select>
+  <select id="filterAvaliacao">
+    <option value="">Todas as avaliações</option>
+    <option value="Ótimo">⭐ Ótimo</option>
+    <option value="Bom">👍 Bom</option>
+    <option value="Regular">😐 Regular</option>
+    <option value="Ruim">👎 Ruim</option>
+    <option value="Péssimo">💔 Péssimo</option>
+  </select>
+  <select id="filterP04">
+    <option value="">Todos os contatos</option>
+    <option value="Eu nunca fiz">Nunca fiz</option>
+    <option value="Eu fiz e tive retorno rápido">Fiz — retorno rápido</option>
+    <option value="Eu fiz e nunca tive retorno">Fiz — sem retorno</option>
+    <option value="Eu fiz e tive retorno demorado">Fiz — retorno demorado</option>
+  </select>
+  <label style="margin-left:8px;">📅 DE</label>
+  <input type="date" id="filterDateFrom" style="background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:7px 10px;border-radius:8px;font-size:13px;font-family:'DM Sans',sans-serif;cursor:pointer;" value="2026-01-01">
+  <label>ATÉ</label>
+  <input type="date" id="filterDateTo" style="background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:7px 10px;border-radius:8px;font-size:13px;font-family:'DM Sans',sans-serif;cursor:pointer;" value="2026-12-31">
+  <div style="display:flex;gap:6px;flex-wrap:wrap;">
+    <button class="btn-reset" onclick="setDatePreset('jan')" id="btn-jan" style="border-color:#00d4ff44;">Jan</button>
+    <button class="btn-reset" onclick="setDatePreset('fev')" id="btn-fev">Fev</button>
+    <button class="btn-reset" onclick="setDatePreset('mar')" id="btn-mar">Mar</button>
+    <button class="btn-reset" onclick="setDatePreset('all')" id="btn-all">Todos</button>
+  </div>
+  <button class="btn-reset" onclick="resetFilters()">✕ Limpar</button>
+  <span id="filter-count" style="font-size:12px;color:var(--muted);margin-left:auto;"></span>
+</div>
+
+<!-- ═══ QUESTIONS LEGEND ═══ -->
+<div style="background:#0d1525;border-bottom:1px solid #1e2d45;padding:12px 40px;display:flex;flex-wrap:wrap;gap:24px;">
+  <div style="font-size:11px;color:#64748b;display:flex;align-items:center;gap:8px;">
+    <span style="background:#00d4ff22;color:#00d4ff;border:1px solid #00d4ff44;border-radius:5px;padding:2px 8px;font-weight:700;font-family:'Syne',sans-serif;">P01</span>
+    Como você avalia o <strong style="color:#94a3b8">ATENDIMENTO PRESTADO</strong> pelo profissional?
+  </div>
+  <div style="font-size:11px;color:#64748b;display:flex;align-items:center;gap:8px;">
+    <span style="background:#7c3aed22;color:#a78bfa;border:1px solid #7c3aed44;border-radius:5px;padding:2px 8px;font-weight:700;font-family:'Syne',sans-serif;">P02</span>
+    Como você avalia a <strong style="color:#94a3b8">ORIENTAÇÃO</strong> quanto às suas <strong style="color:#94a3b8">QUEIXAS e DÚVIDAS</strong>?
+  </div>
+  <div style="font-size:11px;color:#64748b;display:flex;align-items:center;gap:8px;">
+    <span style="background:#10b98122;color:#34d399;border:1px solid #10b98144;border-radius:5px;padding:2px 8px;font-weight:700;font-family:'Syne',sans-serif;">P03</span>
+    Como você avalia o atendimento em relação ao <strong style="color:#94a3b8">HORÁRIO agendado</strong>?
+  </div>
+  <div style="font-size:11px;color:#64748b;display:flex;align-items:center;gap:8px;">
+    <span style="background:#f59e0b22;color:#fbbf24;border:1px solid #f59e0b44;border-radius:5px;padding:2px 8px;font-weight:700;font-family:'Syne',sans-serif;">P04</span>
+    Você já fez algum <strong style="color:#94a3b8">ELOGIO, SUGESTÃO ou COMENTÁRIO</strong> para esta Unidade? Teve retorno?
+  </div>
+  <div style="font-size:11px;color:#64748b;display:flex;align-items:center;gap:8px;">
+    <span style="background:#ec489922;color:#f472b6;border:1px solid #ec489944;border-radius:5px;padding:2px 8px;font-weight:700;font-family:'Syne',sans-serif;">P05</span>
+    Gostaria de deixar algum <strong style="color:#94a3b8">ELOGIO, SUGESTÃO ou COMENTÁRIO</strong> sobre o atendimento recebido?
+  </div>
+</div>
+
+<!-- ═══ MAIN ═══ -->
+<main>
+
+  <!-- KPIs -->
+  <div class="kpi-grid" id="kpi-grid">
+    <div class="kpi" style="--kpi-color:#00d4ff">
+      <div class="kpi-icon">📋</div>
+      <div class="kpi-value" id="kpi-total">263</div>
+      <div class="kpi-label">Total de avaliações</div>
+      <div class="kpi-sub">mar 2026</div>
+    </div>
+    <div class="kpi" style="--kpi-color:#10b981">
+      <div class="kpi-icon">⭐</div>
+      <div class="kpi-value" id="kpi-otimo">—</div>
+      <div class="kpi-label">% Ótimo (P01)</div>
+      <div class="kpi-sub">Atendimento prestado pelo profissional</div>
+    </div>
+    <div class="kpi" style="--kpi-color:#7c3aed">
+      <div class="kpi-icon">🏆</div>
+      <div class="kpi-value" id="kpi-score">—</div>
+      <div class="kpi-label">Nota média geral</div>
+      <div class="kpi-sub">Escala 1–5</div>
+    </div>
+    <div class="kpi" style="--kpi-color:#f59e0b">
+      <div class="kpi-icon">🏥</div>
+      <div class="kpi-value" id="kpi-units">14</div>
+      <div class="kpi-label">Unidades avaliadas</div>
+      <div class="kpi-sub">Ilhabela · SP</div>
+    </div>
+    <div class="kpi" style="--kpi-color:#ef4444">
+      <div class="kpi-icon">⚠️</div>
+      <div class="kpi-value" id="kpi-neg">—</div>
+      <div class="kpi-label">Avaliações críticas</div>
+      <div class="kpi-sub">Ruim + Péssimo (P01–P03)</div>
+    </div>
+  </div>
+
+  <!-- ══ P01 ══ -->
+  <div class="section-title"><span style="background:#00d4ff22;color:#00d4ff;border:1px solid #00d4ff44;border-radius:6px;padding:2px 10px;font-family:'Syne',sans-serif;font-size:13px;">P01</span> &nbsp;Atendimento Prestado pelo Profissional</div>
+  <div class="row-2" style="margin-bottom:20px;">
+    <div class="chart-card">
+      <div class="chart-title">📊 Distribuição geral — P01</div>
+      <div class="chart-desc">Como você avalia o <strong>ATENDIMENTO PRESTADO</strong> pelo profissional?</div>
+      <canvas id="chartP01Dist" height="200"></canvas>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">🏥 P01 por Unidade (empilhado)</div>
+      <div class="chart-desc">Composição de respostas de Atendimento em cada unidade</div>
+      <canvas id="chartP01Unit" height="200"></canvas>
+    </div>
+  </div>
+
+  <!-- ══ P02 ══ -->
+  <div class="section-title"><span style="background:#7c3aed22;color:#a78bfa;border:1px solid #7c3aed44;border-radius:6px;padding:2px 10px;font-family:'Syne',sans-serif;font-size:13px;">P02</span> &nbsp;Orientação sobre Queixas e Dúvidas</div>
+  <div class="row-2" style="margin-bottom:20px;">
+    <div class="chart-card">
+      <div class="chart-title">📊 Distribuição geral — P02</div>
+      <div class="chart-desc">Como você avalia a <strong>ORIENTAÇÃO</strong> do profissional quanto às suas <strong>QUEIXAS e DÚVIDAS</strong>?</div>
+      <canvas id="chartP02Dist" height="200"></canvas>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">🏥 P02 por Unidade (empilhado)</div>
+      <div class="chart-desc">Composição de respostas de Orientação em cada unidade</div>
+      <canvas id="chartP02Unit" height="200"></canvas>
+    </div>
+  </div>
+
+  <!-- ══ P03 ══ -->
+  <div class="section-title"><span style="background:#10b98122;color:#34d399;border:1px solid #10b98144;border-radius:6px;padding:2px 10px;font-family:'Syne',sans-serif;font-size:13px;">P03</span> &nbsp;Pontualidade / Horário Agendado</div>
+  <div class="row-2" style="margin-bottom:20px;">
+    <div class="chart-card">
+      <div class="chart-title">📊 Distribuição geral — P03</div>
+      <div class="chart-desc">Como você avalia o atendimento em relação ao <strong>HORÁRIO agendado</strong>?</div>
+      <canvas id="chartP03Dist" height="200"></canvas>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">🏥 P03 por Unidade (empilhado)</div>
+      <div class="chart-desc">Composição de respostas de Pontualidade em cada unidade</div>
+      <canvas id="chartP03Unit" height="200"></canvas>
+    </div>
+  </div>
+
+  <!-- ══ TOTAIS CONSOLIDADOS ══ -->
+  <div class="section-title">Visão Consolidada — P01 · P02 · P03</div>
+  <div class="row-full" style="margin-bottom:20px;">
+    <div class="chart-card">
+      <div class="chart-title">📊 Comparativo Total — Distribuição por pergunta</div>
+      <div class="chart-desc">Visão lado a lado das três dimensões avaliadas: volume de respostas por categoria</div>
+      <canvas id="chartDimensoes" height="110"></canvas>
+    </div>
+  </div>
+  <div class="row-2" style="margin-bottom:20px;">
+    <div class="chart-card">
+      <div class="chart-title">🕸️ Radar — Top 6 Unidades (3 dimensões)</div>
+      <div class="chart-desc">Visão multidimensional comparativa das unidades com mais respostas</div>
+      <canvas id="chartRadar" height="280"></canvas>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">🌡️ Heatmap — Nota por Unidade × Dimensão</div>
+      <div class="chart-desc">Cor indica a nota média (verde = ótimo, vermelho = crítico)</div>
+      <div style="overflow-x:auto;">
+        <table class="heatmap-table" id="heatmap-table"></table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ RANKING + P04 ══ -->
+  <div class="section-title">Ranking & P04 — Contato com a Unidade</div>
+  <div class="row-3" style="margin-bottom:20px;">
+    <div class="chart-card">
+      <div class="chart-title">🏆 Ranking de Satisfação por Unidade</div>
+      <div class="chart-desc">Nota média das três dimensões avaliadas (escala 1–5)</div>
+      <table class="ranking-table" id="ranking-table"></table>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">📞 P04 — Elogio, Sugestão ou Comentário à Unidade</div>
+      <div class="chart-desc">Você já fez algum elogio, sugestão ou comentário? Teve retorno?</div>
+      <canvas id="chartP04" height="220"></canvas>
+      <div style="margin-top:16px;" id="p04-legend"></div>
+    </div>
+  </div>
+
+  <!-- ══ Volume ══ -->
+  <div class="row-full" style="margin-bottom:20px;">
+    <div class="chart-card">
+      <div class="chart-title">📈 Volume de Avaliações por Unidade</div>
+      <div class="chart-desc">Representatividade de cada unidade no total de respostas</div>
+      <canvas id="chartVolume" height="90"></canvas>
+    </div>
+  </div>
+
+  <!-- ══ P05 ══ -->
+  <div class="section-title"><span style="background:#ec489922;color:#f472b6;border:1px solid #ec489944;border-radius:6px;padding:2px 10px;font-family:'Syne',sans-serif;font-size:13px;">P05</span> &nbsp;Comentários dos Usuários</div>
+  <div class="row-2">
+    <div class="chart-card">
+      <div class="chart-title">☁️ Palavras mais frequentes nos comentários</div>
+      <div class="chart-desc">Termos recorrentes nas respostas abertas dos usuários</div>
+      <div class="word-cloud" id="word-cloud"></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">💬 Comentários dos usuários</div>
+      <div class="chart-desc">Respostas abertas filtráveis da pergunta P05</div>
+      <input type="text" class="comment-search" id="comment-search" placeholder="🔍 Buscar nos comentários...">
+      <div class="comments-list" id="comments-list"></div>
+    </div>
+  </div>
+
+</main>
+
+<footer>
+  Dashboard gerado automaticamente · Secretaria de Saúde de Ilhabela · Dados de março de 2026
+</footer>
+
+<script>
+// ═══════════════════════════════════════════════
+// DATA
+// ═══════════════════════════════════════════════
+const RAW_DATA = [{"id":"18","unidade":"CENTRO DE ESPECIALIDADE DE ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Boa tarde!                            O Dr Elivelton é um excelente fisioterapeuta. ","createdat":"2026-01-22"},{"id":"1250","unidade":"CENTRO DE ESPECIALIDADE DE ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu fiz e tive retorno rápido","P05":"Sempre super bem atendida!!! ","createdat":"2026-01-29"},{"id":"29","unidade":"CENTRO DE ESPECIALIDADE DE ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Sim um ótimo profissional muito atencioso ","createdat":"2026-01-22"},{"id":"21","unidade":"CENTRO DE ESPECIALIDADE DE ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Eu acho que todos que fazem fisioterapia poderiam fazer um complemento da atividade na piscina rs","createdat":"2026-01-22"},{"id":"39","unidade":"CENTRO DE ESPECIALIDADE DE ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Profissional ótima. Super indico","createdat":"2026-01-22"},{"id":"61","unidade":"CENTRO DE ESPECIALIDADE DE ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu fiz e tive retorno rápido","P05":"Os funcionários todos são excelentes!","createdat":"2026-01-22"},{"id":"73","unidade":"CENTRO DE ESPECIALIDADE DE ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Ele é um excelente profissional tem um atendimento impecável, educado, compreensivo e prestativo no atendimento ","createdat":"2026-01-22"},{"id":"72","unidade":"CENTRO DE ESPECIALIDADE DE ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"O Léo é um excelente profissional…muito prestativo,atencioso e cuidadoso! ","createdat":"2026-01-22"},{"id":"67","unidade":"CENTRO DE ESPECIALIDADE DE ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu fiz e tive retorno rápido","P05":"Gostaria de agradecer atenção que até o momento estou tendo a toda equipe,  em especial ao Dr Leonardo que está cuidando de mim e os resultados estão vindo. ","createdat":"2026-01-22"},{"id":"64","unidade":"CENTRO DE ESPECIALIDADE DE ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Fiquei bem impressionada com a sala de fisioterapia,  bem arejada, com bons aparelhos e o profissional Henrique me atende muito bem...","createdat":"2026-01-22"},{"id":"86","unidade":"CENTRO DE ESPECIALIDADE DE ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Estou muito satisfeito com o tratamento que estou ressebendo","createdat":"2026-01-22"},{"id":"87","unidade":"CENTRO DE ESPECIALIDADE DE ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"A fisioterapeuta Maria é muito atenciosa ","createdat":"2026-01-22"},{"id":"91","unidade":"CENTRO DE ESPECIALIDADE DE ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Muito competente ótima profissional e muito atenciosa ","createdat":"2026-01-22"},{"id":"85","unidade":"CENTRO DE ESPECIALIDADE DE ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu fiz e tive retorno rápido","P05":"estou  bem  satisfeito com o  trbalho  da  doutora  maria ","createdat":"2026-01-22"},{"id":"92","unidade":"CENTRO DE ESPECIALIDADE DE ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Só tenho a agradecer  e elogiar todos os atendimentos que tenho feito pela Santa Casa e principalmente pela fisioterapeuta  Maria Paula  que é  muito  atenciosa e carinhosa, não  só  comigo mas com todos que vejo ela atendendo.  Muita gratidão ","createdat":"2026-01-22"},{"id":"99","unidade":"CENTRO DE ESPECIALIDADE DE ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Profissional Exelente","createdat":"2026-01-22"},{"id":"100","unidade":"CENTRO DE ESPECIALIDADE DE ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"foi otimo o atendimento! explicou em detalhes o tratamento e foi muito eficiente, gostei!! ","createdat":"2026-01-22"},{"id":"96","unidade":"CENTRO DE ESPECIALIDADE DE ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Nem tenho palavras pra descrever a profissional _x000D_\nMaria maravilhosa, dedicada seus pacientes.. Nossa so tenho q agradecer ela por tudo.. ","createdat":"2026-01-22"},{"id":"101","unidade":"CENTRO DE ESPECIALIDADE DE ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Ter mais profissionais iguais a ela ","createdat":"2026-01-22"},{"id":"48","unidade":"CENTRO DE ESPECIALIDADE DE ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Excelente atendimento, a profissional é competente e dedicada, acolhe o paciente com muito carinho e respeito._x000D_\nO resultado é fantástico,senti diferença para melhor no primeiro atendimento._x000D_\nUma terapia que dá resultado.","createdat":"2026-01-22"},{"id":"94","unidade":"CENTRO DE ESPECIALIDADE DE ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Eu estou totalmente satisfeita com o atendimento recebido pela Maria, atenciosa, competente e muito gentil","createdat":"2026-01-22"},{"id":"69","unidade":"CENTRO DE ESPECIALIDADE DE ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Atendimento excelente! Profissional muito atencioso e qualificado! ","createdat":"2026-01-22"},{"id":"124","unidade":"CENTRO DE ESPECIALIDADE DE ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Ótimo atendimento ,fui bem orientada em questão e de retorno e exames que deveria fazer ","createdat":"2026-01-22"},{"id":"122","unidade":"CENTRO DE ESPECIALIDADE DE ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Bom","P04":"Eu fiz e tive retorno demorado","P05":"Bom ","createdat":"2026-01-22"},{"id":"117","unidade":"CENTRO DE ESPECIALIDADE DE ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Só tenho a agradecer a todos muito obrigado ","createdat":"2026-01-22"},{"id":"93","unidade":"CENTRO DE ESPECIALIDADE DE ILHABELA","P01":"Bom","P02":"Ótimo","P03":"Regular","P04":"Eu nunca fiz","P05":"Todos ótimos muitos prestativos adoro todos da UBS Itaquanduba ","createdat":"2026-01-22"},{"id":"6","unidade":"CENTRO DE ESPECIALIDADE DE ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu fiz e tive retorno rápido","P05":"Profissional excelente. ","createdat":"2026-01-22"},{"id":"133","unidade":"CENTRO DE ESPECIALIDADE DE ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Ótimo atendimento, super rápido, todas muito educadas e de bom humor","createdat":"2026-01-22"},{"id":"153","unidade":"CENTRO DE ESPECIALIDADE DE ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"O profissional é muito bom..tanto no profissionalismo como tbm na parte humana e educação...muito atencioso e comprometido com o paciente.","createdat":"2026-01-22"},{"id":"90","unidade":"CENTRO DE ESPECIALIDADE DE ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Sempre me esclarece sobre o tratamento, tira minhas dúvidas e me atende carinhosamente. Ótima profissional.","createdat":"2026-01-22"},{"id":"110","unidade":"CENTRO DE ESPECIALIDADE DE ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Bom","P04":"Eu fiz e tive retorno rápido","P05":"Equipe qualificada , e muito profissional… pronta para atender a necessidade da população ","createdat":"2026-01-22"},{"id":"219","unidade":"CENTRO DE REFERENCIA ANIMAL","P01":"Bom","P02":"Ótimo","P03":"Bom","P04":"Eu nunca fiz","P05":"Deus abençoe sempre ","createdat":"2026-01-22"},{"id":"210","unidade":"CENTRO DE INCENTIVO AO ALEITAMENTO MATERNO","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu fiz e tive retorno rápido","P05":" Quero dizer q  todos os envolvidos pela  área da saúde são ótimos parabéns   pela suas capacidade de fazer   TD.   Conforme os paciente sentir   bem. ","createdat":"2026-01-22"},{"id":"200","unidade":"CENTRO DE INCENTIVO AO ALEITAMENTO MATERNO","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Atendimento maravilhoso com nós mães e nossos bebês. _x000D_\nMuito cuidado e carinho _x000D_\nEstou amando ","createdat":"2026-01-22"},{"id":"238","unidade":"CENTRO DE REFERENCIA ANIMAL","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu fiz e tive retorno rápido","P05":"Excelente profissional e educadas ","createdat":"2026-01-22"},{"id":"221","unidade":"CENTRO DE REFERENCIA ANIMAL","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Otimo maravilhoso prestativo ","createdat":"2026-01-22"},{"id":"226","unidade":"CENTRO DE REFERENCIA ANIMAL","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Todos os funcionários prestam um ótimo atendimento ","createdat":"2026-01-22"},{"id":"237","unidade":"CENTRO DE REFERENCIA ANIMAL","P01":"Ótimo","P02":"Bom","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Só poderia ter mais espaços para os canis muito pouco","createdat":"2026-01-22"},{"id":"225","unidade":"CENTRO DE REFERENCIA ANIMAL","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Sempre que vou lá  sou muito bem atendida e os proficionais são  muito carinhosos com meu animal obrigada","createdat":"2026-01-22"},{"id":"245","unidade":"CENTRO DE REFERENCIA ANIMAL","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Só tenho agradecer pelo atendimento e atenção da dra.mas infelizmente minha pet precisa de exame e tratamento q ainda não temos aqui.minha cadelinha está com câncer no fígado.","createdat":"2026-01-22"},{"id":"248","unidade":"CENTRO DE REFERENCIA ESPECIALIZADA JULIA TENORIO","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Estou muito satisfeita com o atendimento ","createdat":"2026-01-22"},{"id":"252","unidade":"CENTRO DE REFERENCIA ESPECIALIZADA JULIA TENORIO","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Um excelente profissional, faço acompanhamento com ele há aproximadamente 5 anos.","createdat":"2026-01-22"},{"id":"256","unidade":"CENTRO DE REFERENCIA ESPECIALIZADA JULIA TENORIO","P01":"Bom","P02":"Bom","P03":"Bom","P04":"Eu fiz e tive retorno rápido","P05":"Muito atencioso e simpático ","createdat":"2026-01-22"},{"id":"268","unidade":"CENTRO DE REFERENCIA ESPECIALIZADA JULIA TENORIO","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Parabéns pela organização, gentileza e atenção !","createdat":"2026-01-22"},{"id":"292","unidade":"CENTRO DE REFERENCIA ESPECIALIZADA JULIA TENORIO","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu fiz e tive retorno rápido","P05":"Melissa  é  ótima profissional","createdat":"2026-01-22"},{"id":"232","unidade":"CENTRO DE REFERENCIA ANIMAL","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu fiz e tive retorno rápido","P05":"Gostaria de sugerir ao espaço que se podem oferecer alguns comprimidos pra ajudar no tratamento do animal de alto custo não tive como comprar o remédio do meu gato ","createdat":"2026-01-22"},{"id":"65","unidade":"CENTRO DE ESPECIALIDADE DE ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Eu só tenho elogios ao profissional Henrique! Muito dedicado, detalhista nas explicações,  organizado, sempre de bom humor e deixa o ambiente extremamente descontraído com seu jeito de ser único, sempre incentivando a cada exercício!_x000D_\nParabéns por esse profissional ímpar!","createdat":"2026-01-22"},{"id":"1176","unidade":"CENTRO DE ESPECIALIDADE DE ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Profissional excelente.","createdat":"2026-01-29"},{"id":"307","unidade":"CENTRO DE REFERENCIA ESPECIALIZADA JULIA TENORIO","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Fui muito bem atendida pelo dr Paulo exclusive vou voltar amanhã para ele dar entrada papelada para cirurgia o dr me conheceu senti segurança nele obrigado a todos vcs","createdat":"2026-01-22"},{"id":"308","unidade":"CENTRO DE REFERENCIA ESPECIALIZADA JULIA TENORIO","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"ótimo","createdat":"2026-01-22"},{"id":"1290","unidade":"CENTRO DE ESPECIALIDADE DE ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Não ","createdat":"2026-01-29"},{"id":"340","unidade":"CER III TEA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Todos os profissionais que atendem a minha filha flora são sensacionais. A Amanda foi super atenciosa e bem disposta.","createdat":"2026-01-22"},{"id":"344","unidade":"CER III TEA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Parabéns ","createdat":"2026-01-22"},{"id":"345","unidade":"CER III TEA","P01":"Bom","P02":"Bom","P03":"Bom","P04":"Eu nunca fiz","P05":"Bom","createdat":"2026-01-22"},{"id":"372","unidade":"CER III TEA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Uma excelente profissional, ótimo atendimento sempre ","createdat":"2026-01-22"},{"id":"364","unidade":"CER III TEA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"O atendimento é excelente.","createdat":"2026-01-22"},{"id":"363","unidade":"CER III TEA","P01":"Ótimo","P02":"Bom","P03":"Bom","P04":"Eu fiz e tive retorno rápido","P05":"Só tenho que agradecer a todos pelo atendimento que meu filho está tendo vejo uma melhora de 100 % nele depois que começou o tratamento tanto com a fono Gisele  e com a psicóloga Carol só agradecer meu muito obrigado ","createdat":"2026-01-22"},{"id":"157","unidade":"CENTRO DE ESPECIALIDADE DE ILHABELA","P01":"Ótimo","P02":"Bom","P03":"Bom","P04":"Eu nunca fiz","P05":"Profissional Vinicius muito prestativo, eficiente e gentil._x000D_\nSou muito grata, pois minha recuperação tem sido muito boa. Agradeço a ele todo empenho. ","createdat":"2026-01-22"},{"id":"377","unidade":"CER III TEA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Minha filha antonella Silva Santana vem evoluindo muito com os métodos passados pela profissional Elenice. Só tenho que agradecer ","createdat":"2026-01-22"},{"id":"386","unidade":"CER III TEA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Profissionais excelentes, atenciosas e muito educadas ","createdat":"2026-01-22"},{"id":"394","unidade":"CER III TEA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Toda equipe muito eficientes e educadas. Em especial a fono Karina uma ótima profissional, minha filha evoluiu muito com os cuidados dela. Atenciosa, educada e amorosa!Parabéns !","createdat":"2026-01-22"},{"id":"407","unidade":"CER III TEA","P01":"Bom","P02":"Bom","P03":"Ótimo","P04":"Eu fiz e tive retorno demorado","P05":"Super anteciosa, prestativa,meu filho ama muito!","createdat":"2026-01-22"},{"id":"421","unidade":"CER III TEA","P01":"Ótimo","P02":"Ótimo","P03":"Bom","P04":"Eu nunca fiz","P05":"Profissionais  atenciosos  e educados. Parabéns a todos os profissionais da rede de Saúde de Ilhabela, me sinto muito bem atendida pela rede.","createdat":"2026-01-22"},{"id":"432","unidade":"CER III TEA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Agradeço a secretaria de Saúde por ser tão boa, os excelentes profissionais, principalmente Dr Alcionei já salvou minha vida 2 vezes, então sou grata eternamente ","createdat":"2026-01-22"},{"id":"433","unidade":"CER III TEA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Excelente funcionária. Atenciosa, dedicada.","createdat":"2026-01-22"},{"id":"435","unidade":"CER III TEA","P01":"Ótimo","P02":"Bom","P03":"Bom","P04":"Eu nunca fiz","P05":"SEMPRE SOU BEM ATENDIDA, EXCELENTE O AMBIENTE E OS PROFISSIONAIS","createdat":"2026-01-22"},{"id":"458","unidade":"CER III TEA","P01":"Ótimo","P02":"Bom","P03":"Ótimo","P04":"Eu fiz e tive retorno rápido","P05":"Eles são muito bomqq","createdat":"2026-01-22"},{"id":"265","unidade":"CENTRO DE REFERENCIA ESPECIALIZADA JULIA TENORIO","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Fui bem atendido _x000D_\n","createdat":"2026-01-22"},{"id":"80","unidade":"CENTRO DE ESPECIALIDADE DE ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Não ","createdat":"2026-01-22"},{"id":"357","unidade":"CER III TEA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu fiz e tive retorno rápido","P05":"Muito bom e acolhedor, me senti super confortável ","createdat":"2026-01-22"},{"id":"447","unidade":"CER III TEA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu fiz e tive retorno rápido","P05":"A karina é uma querida, sempre fazendo o possível pra nos ajudar com o Theo Elias.Uma profissional exemplar. Gratidão por cada evolução que o Theo tem adquirido com o procedimentos de todos.","createdat":"2026-01-22"},{"id":"385","unidade":"CER III TEA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu fiz e tive retorno rápido","P05":"Meu muito obrigado a todas equipe sempre dedicado a prestar atenção nas consultas e da lembrete das consultas as respeito dos profissional são de muito cuidado e meu filho Lukas Alex Valentim Julião estar se dando muito bem com os profissionais todos são nota mil ","createdat":"2026-01-22"},{"id":"444","unidade":"CER III TEA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu fiz e tive retorno rápido","P05":"Profissional ótima , muito atenciosa e prestativa.","createdat":"2026-01-22"},{"id":"313","unidade":"CENTRO DE REFERENCIA ESPECIALIZADA JULIA TENORIO","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Atendimento excelente. E passou muita confiança e profissionalismo. Estou muito satisfeita com o atendimento do Dr Thales.","createdat":"2026-01-22"},{"id":"482","unidade":"CS III DE ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Agradeço pelo atendimento!","createdat":"2026-01-22"},{"id":"235","unidade":"CENTRO DE REFERENCIA ANIMAL","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Parabéns pelo carinho com os animais e o trabalho ","createdat":"2026-01-22"},{"id":"197","unidade":"CENTRO DE INCENTIVO AO ALEITAMENTO MATERNO","P01":"Ótimo","P02":"Ótimo","P03":"Bom","P04":"Eu nunca fiz","P05":"Deu apoio na orientação, com exemplos e acolhimento.","createdat":"2026-01-22"},{"id":"401","unidade":"CER III TEA","P01":"Bom","P02":"Bom","P03":"Bom","P04":"Eu fiz e tive retorno rápido","P05":"Gosto do trabalho de vcs , Continue assim , estão no caminho certo✔️ ","createdat":"2026-01-22"},{"id":"203","unidade":"CENTRO DE INCENTIVO AO ALEITAMENTO MATERNO","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Atendimento excelente e muito prestativo a todas as mãezinhas. O CIAMA é, sem dúvidas, um dos melhores setores da saúde. ","createdat":"2026-01-22"},{"id":"105","unidade":"CENTRO DE ESPECIALIDADE DE ILHABELA","P01":"Ótimo","P02":"Bom","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Bom muito atenciosa o espaço que falta alguns equipamentos acho que poderia ter uma  bicicleta e uma esteira elétrica ","createdat":"2026-01-22"},{"id":"22","unidade":"CENTRO DE ESPECIALIDADE DE ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Pontuais qto as sessões, demorou bastante qto ao ser chamada para o início da fisioterapia, porém, levando em consideração  a demanda de pacientes aguardando para dar início tbm ao tratamento. ","createdat":"2026-01-22"},{"id":"361","unidade":"CER III TEA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Sou muito grata a psicóloga Carol,desde que Maria Alice está passando com ela, teve um grande avanço no desenvolvimento dela. Ela e uma excelente profissional, atenciosa, carinho com minha filha Maria Alice.","createdat":"2026-01-22"},{"id":"1010","unidade":"UBS PEREQUE ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu fiz e tive retorno rápido","P05":"E profissional muito atencioso, prestativo um ser humano incrível, estou feliz em estar fazendo fisioterapia com esse profissional ","createdat":"2026-01-22"},{"id":"430","unidade":"CER III TEA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu fiz e tive retorno rápido","P05":"A Dra Mariana acolhe, é empática e está me ajudando muito com minha saúde mental.","createdat":"2026-01-22"},{"id":"259","unidade":"CENTRO DE REFERENCIA ESPECIALIZADA JULIA TENORIO","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"O atendimento meu filho tem para mim é ótimo o profissional que atende o meu filho também é ótimo","createdat":"2026-01-22"},{"id":"678","unidade":"UBS ALTO DA BARRA VELHA ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Mta Gratidão.Estou confiante q vou conseguir melhorar meu estado de saúde.Deixo aqui meu agradecimento ao Dr. Carlos psicólogo mto obrigado","createdat":"2026-01-22"},{"id":"715","unidade":"UBS BARRA VELHA ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Gostaria de parabenizar o profissional Dr Elivelton pela dedicação que ele tem com seus paciente. Merece minha gratidão e meu respeito.","createdat":"2026-01-22"},{"id":"52","unidade":"CENTRO DE ESPECIALIDADE DE ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"A nutricionista Giovanna é uma grande profissional, empenho e dedicação ao seu trabalho acolhe com o coração cada paciente, me sinto cuidada, respeitada e acolhida em casa consulta. A motivação e o cuidado com nossa saúde mostra o amor a profissão. Sou extremamente grata por ser atendida por ela e pelas meninas da recepção, elas são um amor ❤️ _x000D_\nSó tenho a agradecer a cada uma delas. Meu muito obrigada!_x000D_\nContinuem assim! As vezes chegamos cansadas, desanimadas, sem forças e elas nos recebem com um bom dia, boa tarde e sorrisos._x000D_\nObrigada pelo carinho!!","createdat":"2026-01-22"},{"id":"288","unidade":"CENTRO DE REFERENCIA ESPECIALIZADA JULIA TENORIO","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Tanto a Dra Melissa quanto a equipe que participou do meu procedimento, foram extremamente atenciosos e prestaram todas as informações. ","createdat":"2026-01-22"},{"id":"82","unidade":"CENTRO DE ESPECIALIDADE DE ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Maria Paula é uma profissional exemplar, super atenciosa, explica cada procedimento _x000D_\nEstá de parabéns!","createdat":"2026-01-22"},{"id":"104","unidade":"CENTRO DE ESPECIALIDADE DE ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Presto aqui meu respeito e gratidão ao atendimento da Michele e também do fisioterapeuta Leonardo que me atendeu muitíssimo bem durante o período de férias da Michele. _x000D_\n_x000D_\nAmbos extremamente pontuais, prestativos, e excelentes profissionais.","createdat":"2026-01-22"},{"id":"17","unidade":"CENTRO DE ESPECIALIDADE DE ILHABELA","P01":"Ótimo","P02":"Bom","P03":"Ótimo","P04":"Eu fiz e tive retorno rápido","P05":"Quanto ao atendimento do profissional nota 10, humilde, prestativo, dedicado, não tenho o que reclamar da pessoa.","createdat":"2026-01-22"},{"id":"84","unidade":"CENTRO DE ESPECIALIDADE DE ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"A Fisioterapeuta Maria Paula é uma profissional excelente! Muito atenciosa,preocupada com a saúde dos seus pacientes ! Uma pessoa q tem um coração maravilhoso! Uma pessoa dedicada e q sabe o q faz! Sou muito grato de ter tido meu atendimento pela Fisioterapeuta Maria Paula ! Melhorei muito 👏! Muito obrigado!","createdat":"2026-01-22"},{"id":"1157","unidade":"CENTRO DE ESPECIALIDADE DE ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu fiz e tive retorno rápido","P05":"Sempre Bem atendida pelo os profissionais ","createdat":"2026-01-29"},{"id":"1160","unidade":"CENTRO DE ESPECIALIDADE DE ILHABELA","P01":"Ótimo","P02":"Bom","P03":"Bom","P04":"Eu nunca fiz","P05":"Continuidade assim vc é um amor. ","createdat":"2026-01-29"},{"id":"1165","unidade":"CENTRO DE ESPECIALIDADE DE ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Sempre fui atendida bem,na ubs também pelos profissionais ","createdat":"2026-01-29"},{"id":"1162","unidade":"CENTRO DE ESPECIALIDADE DE ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Profissional muito capacitada, parabéns!","createdat":"2026-01-29"},{"id":"1173","unidade":"CENTRO DE ESPECIALIDADE DE ILHABELA","P01":"Bom","P02":"Bom","P03":"Regular","P04":"Eu nunca fiz","P05":"Depende da quem tá na recepção as vezes tem uma lá não sei o nome agente comprometa ela. Em olha na cara mas tem uma outras duas b legais também não sei o nome.","createdat":"2026-01-29"},{"id":"1193","unidade":"CENTRO DE ESPECIALIDADE DE ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Ótima funcionária !!@","createdat":"2026-01-29"},{"id":"1203","unidade":"CENTRO DE ESPECIALIDADE DE ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Que deus abençoe todos🤝_x000D_\nObrigado❤","createdat":"2026-01-29"},{"id":"1205","unidade":"CENTRO DE ESPECIALIDADE DE ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Eu prefiro fazer isso quando eu estiver com melhor mobilidade da perna esquerda!","createdat":"2026-01-29"},{"id":"1218","unidade":"CENTRO DE ESPECIALIDADE DE ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Bom","P04":"Eu nunca fiz","P05":"Gratidão ","createdat":"2026-01-29"},{"id":"1222","unidade":"CENTRO DE ESPECIALIDADE DE ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Dr. Flávio é um Médico muito humano de uma atenção única, sou muito grata .","createdat":"2026-01-29"},{"id":"1217","unidade":"CENTRO DE ESPECIALIDADE DE ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Fui bem atendida ","createdat":"2026-01-29"},{"id":"1221","unidade":"CENTRO DE ESPECIALIDADE DE ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Bom","P04":"Eu fiz e tive retorno demorado","P05":"Excelente parabéns !","createdat":"2026-01-29"},{"id":"1242","unidade":"CENTRO DE ESPECIALIDADE DE ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Muito muito bom não tenho o que reclamar. _x000D_\nSó agradecer.","createdat":"2026-01-29"},{"id":"1238","unidade":"CENTRO DE ESPECIALIDADE DE ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Bom","P04":"Eu nunca fiz","P05":"Dr. Flávio um excelente profissional, sempre me atendeu com simpatia me sinto muito a vontade em fazer perguntas, me explica tudo direitinho. Não tenho o que reclamar ","createdat":"2026-01-29"},{"id":"1245","unidade":"CENTRO DE ESPECIALIDADE DE ILHABELA","P01":"Bom","P02":"Bom","P03":"Bom","P04":"Eu nunca fiz","P05":"Bom atendimento, profissionais atende com respeito ao paciente.","createdat":"2026-01-29"},{"id":"1279","unidade":"CENTRO DE ESPECIALIDADE DE ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Ele é um excelente profissional ","createdat":"2026-01-29"},{"id":"1158","unidade":"CENTRO DE ESPECIALIDADE DE ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"O atendimento é muito bom, não tenho oq reclamar _x000D_\nSó elogios ","createdat":"2026-01-29"},{"id":"1282","unidade":"CENTRO DE ESPECIALIDADE DE ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu fiz e tive retorno rápido","P05":"Atendimento maravilhoso","createdat":"2026-01-29"},{"id":"1309","unidade":"CENTRO DE ESPECIALIDADE DE ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Uma excelente profissional muito dedicada e atenciosa","createdat":"2026-01-29"},{"id":"1298","unidade":"CENTRO DE ESPECIALIDADE DE ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"A Maria Paula é muito atenciosa ","createdat":"2026-01-29"},{"id":"1307","unidade":"CENTRO DE ESPECIALIDADE DE ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu fiz e tive retorno rápido","P05":"Maravilhosa...","createdat":"2026-01-29"},{"id":"1304","unidade":"CENTRO DE ESPECIALIDADE DE ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu fiz e nunca tive retorno","P05":"Fia a avaliação,  mas não  tive retorno,  só  agora pediram  para avaliar  novamente. ","createdat":"2026-01-29"},{"id":"1295","unidade":"CENTRO DE ESPECIALIDADE DE ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu fiz e nunca tive retorno","P05":"A Fisioterapeuta Maria Paula é uma profissional exemplar! Desde o primeiro dia q comecei a fisioterapia, já deu pra perceber q eu  estava em boas mãos!","createdat":"2026-01-29"},{"id":"1310","unidade":"CENTRO DE ESPECIALIDADE DE ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu fiz e tive retorno rápido","P05":"tudo certo! ","createdat":"2026-01-29"},{"id":"1301","unidade":"CENTRO DE ESPECIALIDADE DE ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Muito competente, atenciosa e comunicativa ","createdat":"2026-01-29"},{"id":"1231","unidade":"CENTRO DE ESPECIALIDADE DE ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Meu filho foi encaminhado para o médico errado. O profissional só atende adultos","createdat":"2026-01-29"},{"id":"1314","unidade":"CENTRO DE ESPECIALIDADE DE ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu fiz e nunca tive retorno","P05":"Muito bom ","createdat":"2026-01-29"},{"id":"1328","unidade":"CENTRO DE ESPECIALIDADE DE ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu fiz e tive retorno rápido","P05":"Ótimo profissional","createdat":"2026-01-29"},{"id":"1318","unidade":"CENTRO DE ESPECIALIDADE DE ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Parabéns, profissional nota 10","createdat":"2026-01-29"},{"id":"1270","unidade":"CENTRO DE ESPECIALIDADE DE ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu fiz e tive retorno rápido","P05":"Excelente profissional, meu atendimento sempre foi muito bom!","createdat":"2026-01-29"},{"id":"1294","unidade":"CENTRO DE ESPECIALIDADE DE ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Uma excelente profissional ","createdat":"2026-01-29"},{"id":"1192","unidade":"CENTRO DE ESPECIALIDADE DE ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Sou muito grato pelo atendimento e acompanhamento que a Elizabeth realiza, tenho uma feriada no pé decorrente de um trauma e o tratamento prestados corretamente com o material adequado vem dando resultado e espero em breve ter alta do tratamento com a cicatrização da feriada, espero que a Santa casa continue com o trabalho prestado, tenho certeza que assim como está me ajudando ainda vai ajudar muita gente.","createdat":"2026-01-29"},{"id":"1345","unidade":"CENTRO DE ESPECIALIDADE DE ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Bom","P04":"Eu nunca fiz","P05":"O dr Sandro é um excelente profissional.","createdat":"2026-01-29"},{"id":"1332","unidade":"CENTRO DE ESPECIALIDADE DE ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Ele é muito cuidadoso, realmente atende com atenção e se preocupa com nossas reclamações. ","createdat":"2026-01-29"},{"id":"1355","unidade":"CENTRO DE ESPECIALIDADE DE ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu fiz e nunca tive retorno","P05":"Profissional comprometido tanto no lado profissional como humano tbm..dou meus parabéns a ele e a vcs da Santa Casa...","createdat":"2026-01-29"},{"id":"1359","unidade":"CENTRO DE ESPECIALIDADE DE ILHABELA","P01":"Ótimo","P02":"Bom","P03":"Bom","P04":"Eu nunca fiz","P05":"Vinicius , profissional muito bom, gentil e eficiente._x000D_\nSó agradeço por estar passando com ele.","createdat":"2026-01-29"},{"id":"1315","unidade":"CENTRO DE ESPECIALIDADE DE ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Excelente atendimento.","createdat":"2026-01-29"},{"id":"1405","unidade":"CENTRO DE REFERENCIA ANIMAL","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu fiz e tive retorno rápido","P05":"A doutora prestou um ótimo trabalho ","createdat":"2026-01-29"},{"id":"1421","unidade":"CENTRO DE REFERENCIA ANIMAL","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Obrigado a todos os profissionais!! ","createdat":"2026-01-29"},{"id":"1418","unidade":"CENTRO DE REFERENCIA ANIMAL","P01":"Bom","P02":"Bom","P03":"Bom","P04":"Eu nunca fiz","P05":"Não fui atendida pessoalmente por ela, resgatei um gato de rua e levai pra castrar, mas a Dra Melissa é uma ótima profissional.","createdat":"2026-01-29"},{"id":"1428","unidade":"CENTRO DE REFERENCIA ANIMAL","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Atendimento excelente com profissionalismo e carinho!","createdat":"2026-01-29"},{"id":"1419","unidade":"CENTRO DE REFERENCIA ANIMAL","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Equipe atenciosa , tratam o paciente e tutor com empatia !! Muito prestativos","createdat":"2026-01-29"},{"id":"1433","unidade":"CENTRO DE REFERENCIA ANIMAL","P01":"Ótimo","P02":"Ótimo","P03":"Bom","P04":"Eu nunca fiz","P05":"Só tenho a agradecer a todos da clínica, principalmente os veterinários! Parabéns!","createdat":"2026-01-29"},{"id":"1435","unidade":"CENTRO DE REFERENCIA ANIMAL","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Atendimento muito bom tanto da recepção, qto enfermagem e profissionais da saúde..","createdat":"2026-01-29"},{"id":"1179","unidade":"CENTRO DE ESPECIALIDADE DE ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu fiz e tive retorno rápido","P05":"Excelente profissional, muito atencioso e educado e prestativo, um ser humano incrível.","createdat":"2026-01-29"},{"id":"1442","unidade":"CENTRO DE REFERENCIA ESPECIALIZADA JULIA TENORIO","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Fui super bem atendido ","createdat":"2026-01-29"},{"id":"1436","unidade":"CENTRO DE REFERENCIA ANIMAL","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Valerie é top! Excelente profissional!!","createdat":"2026-01-29"},{"id":"1456","unidade":"CENTRO DE REFERENCIA ESPECIALIZADA JULIA TENORIO","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu fiz e tive retorno rápido","P05":"O atendimento foi muito proficional ","createdat":"2026-01-29"},{"id":"1471","unidade":"CENTRO DE REFERENCIA ESPECIALIZADA JULIA TENORIO","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"O atendimento está muito rápido e de qualidade o único problema lá é a falta de ar condicionado nos corredores muito calor ","createdat":"2026-01-29"},{"id":"1485","unidade":"CENTRO DE REFERENCIA ESPECIALIZADA JULIA TENORIO","P01":"Ótimo","P02":"Bom","P03":"Bom","P04":"Eu nunca fiz","P05":"Obrigada.","createdat":"2026-01-29"},{"id":"1477","unidade":"CENTRO DE REFERENCIA ESPECIALIZADA JULIA TENORIO","P01":"Bom","P02":"Bom","P03":"Bom","P04":"Eu nunca fiz","P05":". muito on","createdat":"2026-01-29"},{"id":"1411","unidade":"CENTRO DE REFERENCIA ANIMAL","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Eu só tenho elogios sobre o serviço prestado pela profissional, muita atenciosa , pediu todos exames e continua acompanhando meu filho de 4 patas .. muito obrigado ","createdat":"2026-01-29"},{"id":"1498","unidade":"CENTRO DE REFERENCIA ESPECIALIZADA JULIA TENORIO","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Ótima profissional. Atende sempre com um sorriso e calma. Não tem pressa para atender e já fazer entrar o outro paciente. Tem mais pontos positivos, mas não dá para listar todos.","createdat":"2026-01-29"},{"id":"1509","unidade":"CENTRO DE REFERENCIA ESPECIALIZADA JULIA TENORIO","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Atendimento ótimo. Meu filho foi atendido com excelência dentro da especificidade dele, Tea. Dra Gabriela Camilo, profissional incrível. Atendente Cris e técnicas também, ótimo atendimento.","createdat":"2026-01-29"},{"id":"1519","unidade":"CENTRO DE REFERENCIA ESPECIALIZADA JULIA TENORIO","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Ótimo atendimento,  desde a recepção até a consulta ","createdat":"2026-01-29"},{"id":"1513","unidade":"CENTRO DE REFERENCIA ESPECIALIZADA JULIA TENORIO","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Eu fiquei bem satisfeita com atendimento, super rapido, a profissional ela e sensacional.","createdat":"2026-01-29"},{"id":"1517","unidade":"CENTRO DE REFERENCIA ESPECIALIZADA JULIA TENORIO","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Atendimento excelente. Profissionais compromissados com ética, pontualidade e empatia.","createdat":"2026-01-29"},{"id":"1547","unidade":"CENTRO DE REFERENCIA ESPECIALIZADA JULIA TENORIO","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu fiz e tive retorno rápido","P05":"E muito gratificante, quando nós como paciente somos bem atendidos, estão de parabéns os profissionais!!!!!!!","createdat":"2026-01-29"},{"id":"1534","unidade":"CENTRO DE REFERENCIA ESPECIALIZADA JULIA TENORIO","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Profissional atencioso e preocupado, ouviu minhas queixas e está avaliando de forma bastante humanizada e ética","createdat":"2026-01-29"},{"id":"1558","unidade":"CENTRO DE REFERENCIA ESPECIALIZADA JULIA TENORIO","P01":"Ótimo","P02":"Não sabe/Não opinou","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Achei o atendimento muito bom, mas o ar condicionado estava frio demais pra quem tem que aguardar o procedimento.","createdat":"2026-01-29"},{"id":"1591","unidade":"CER III TEA","P01":"Bom","P02":"Bom","P03":"Bom","P04":"Eu nunca fiz","P05":"Só elogiar que fui bem atendido ","createdat":"2026-01-29"},{"id":"1486","unidade":"CENTRO DE REFERENCIA ESPECIALIZADA JULIA TENORIO","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu fiz e tive retorno rápido","P05":"Passei com a Dr. Gabriela menini, uma excelente profissional, simpática, esclarecida e muito paciente. Sempre muito educada e atenciosa","createdat":"2026-01-29"},{"id":"1617","unidade":"CER III TEA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu fiz e tive retorno rápido","P05":"Maravilhoso ","createdat":"2026-01-29"},{"id":"1462","unidade":"CENTRO DE REFERENCIA ESPECIALIZADA JULIA TENORIO","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Td ótimo, só agradecimetos","createdat":"2026-01-29"},{"id":"1627","unidade":"CER III TEA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Profissional excelente! ","createdat":"2026-01-29"},{"id":"1621","unidade":"CER III TEA","P01":"Ótimo","P02":"Ótimo","P03":"Bom","P04":"Eu fiz e nunca tive retorno","P05":"Agradeço a profissional Ana Lucia, acupunturista,pois seu trabalho tem melhorado e muito, minha qualidade de vida._x000D_\nTenho vivido dias sem dor continua,consigo aproveitar melhor meu dia.","createdat":"2026-01-29"},{"id":"1649","unidade":"CER III TEA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu fiz e tive retorno rápido","P05":"Excelente Atendimento _x000D_\n Proficional muito capacitada ","createdat":"2026-01-29"},{"id":"1651","unidade":"CER III TEA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"A dr Lenilde é maravilhosa ❤️","createdat":"2026-01-29"},{"id":"1656","unidade":"CER III TEA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Uma excelente profissional,o meu filho adora a tia lu.","createdat":"2026-01-29"},{"id":"1655","unidade":"CER III TEA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Parabéns pelo trabalho ","createdat":"2026-01-29"},{"id":"1687","unidade":"CER III TEA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Dr. Renata, e os demais funcionários  são  ótimos, não  tenho nada do que reclamar. São  bem atenciosos.","createdat":"2026-01-29"},{"id":"1685","unidade":"CER III TEA","P01":"Ótimo","P02":"Ótimo","P03":"Bom","P04":"Eu nunca fiz","P05":"Funcionárias da recepção atende com antipatia, sem paciência.  ","createdat":"2026-01-29"},{"id":"1674","unidade":"CER III TEA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"A profissional é excelente e tem me ajudado muito. Sou muito grata. ","createdat":"2026-01-29"},{"id":"1672","unidade":"CER III TEA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Excelente profissional ","createdat":"2026-01-29"},{"id":"1689","unidade":"CER III TEA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"No dia 22/01/2026, eu Samanta Alabian mãe do Martin estive presencialmente no Centro Municipal Especializado em Reabilitação e Transtorno do Espectro Autista e tratei diretamente com a coordenadora Marie, responsável pela organização dos atendimentos, a respeito do horário das terapias do meu filho, Martin Estevan de Souza Aguila._x000D_\n_x000D_\nNa ocasião, solicitei a regularização do horário de atendimento com a psicóloga Marcela e a troca da profissional da especialidade de fonoaudiologia, atualmente realizada pela fonoaudióloga Renata, uma vez que a forma como os atendimentos vinham sendo conduzidos estava impactando diretamente a integração entre as especialidades. Durante todo o ano de 2025, ambas as profissionais atenderam meu filho por apenas 20 minutos por sessão, tempo que se mostrou insuficiente para um acompanhamento terapêutico efetivo._x000D_\n_x000D_\nEu e meu esposo reconhecemos e destacamos o empenho, a ética e a disposição da profissional Renata, assim como da psicóloga Marcela, em manter o melhor atendimento possível dentro das limitações existentes. As profissionais demonstraram comprometimento e buscaram se organizar da maneira que lhes era viável. Ressaltamos que a redução do tempo de atendimento e a desorganização dos horários não são de responsabilidade das profissionais, mas sim de uma falha de gestão, uma vez que elas não possuem autonomia para garantir carga horária mínima ou reorganização estrutural._x000D_\n_x000D_\nDiante dessa realidade, ao analisarmos cuidadosamente o comportamento do nosso filho, entendemos que, além da necessidade de garantia de um tempo mínimo adequado de sessão, seria importante também solicitar a troca da profissional de fonoaudiologia. Observamos que, especificamente nas sessões com a profissional atual, Martin apresenta ansiedade elevada, resistência e sinais de estresse excessivo._x000D_\n_x000D_\nTemos plena consciência de que a fonoaudiologia exige esforço, frustração e limites, especialmente considerando que a principal dificuldade do nosso filho está na comunicação. Não se trata de permitir que ele faça apenas o que deseja, mas de assegurar que o processo terapêutico seja produtivo, estruturante e regulador, e não mais uma fonte de sofrimento._x000D_\n_x000D_\nAcreditamos que a instabilidade dos horários e a redução contínua do tempo de atendimento quebraram o processo de adaptação terapêutica, prejudicando o vínculo e, consequentemente, o aproveitamento das poucas sessões disponíveis. Quando o tempo é insuficiente e o vínculo está fragilizado, a terapia deixa de cumprir sua função principal._x000D_\n_x000D_\nNosso objetivo é assegurar que o atendimento oferecido cumpra, de fato, sua função terapêutica e promova desenvolvimento, e não apenas a manutenção formal de um serviço._x000D_\n_x000D_\nReforçamos que esta solicitação não se configura como crítica à conduta ou à competência da profissional, mas como uma decisão fundamentada na observação clínica, na realidade vivenciada ao longo do último ano e no melhor interesse da criança.","createdat":"2026-01-29"},{"id":"1707","unidade":"CER III TEA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Ela é ótima no que faz, é uma pessoa maravilhosa.","createdat":"2026-01-29"},{"id":"1711","unidade":"CER III TEA","P01":"Ótimo","P02":"Ótimo","P03":"Bom","P04":"Eu nunca fiz","P05":"Muito profissional, me ajudou andar novamente, sempre atenciosa.","createdat":"2026-01-29"},{"id":"1717","unidade":"CER III TEA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Parabéns pela iniciativa em nos ouvir, buscando a melhoria no atendimento!","createdat":"2026-01-29"},{"id":"1723","unidade":"CER III TEA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu fiz e tive retorno rápido","P05":"Ela é maravilhosa excelente profissional ","createdat":"2026-01-29"},{"id":"1747","unidade":"CS III DE ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu fiz e tive retorno rápido","P05":"Ela foi simplismente maravilhosa. Assim como todos da unidade de saude","createdat":"2026-01-29"},{"id":"1555","unidade":"CENTRO DE REFERENCIA ESPECIALIZADA JULIA TENORIO","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Atendimento e procedimentos para o exame, excepcionais, pre e pos ","createdat":"2026-01-29"},{"id":"1629","unidade":"CER III TEA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Tive um atendimento excelente e profissional.e gostei da profissional ","createdat":"2026-01-29"},{"id":"1430","unidade":"CENTRO DE REFERENCIA ANIMAL","P01":"Regular","P02":"Ruim","P03":"Bom","P04":"Eu nunca fiz","P05":"A veterinária não quis colocar meu cachorro no soro com medicação para dor,pq estava preocupada que o hospital fecha às 17h, porém eram 11h00 da manhã. Ele tem pedras no rins, estava fraquinho e com dor. Já indicou para ir para uma clínica particular, não demonstrou boa vontade em cuidar de verdade do meu filhinho. E sim sai de lá e fui em uma clínica particular para ele realmente ser cuidado. Perdi 2 horas aguardando para ser atendida no hospital, mas não foi da forma que pensei, veterinária seca sem empatia e amor. Agora o atendimento da recepcionista foi ótimo. Atenciosa, explicou tudo certinho.","createdat":"2026-01-29"},{"id":"1750","unidade":"CS III DE ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Quero agradecer a todos os profissionais da ubs vila, o atendimento e excelente o pessoal carinhoso e atencioso","createdat":"2026-01-29"},{"id":"1659","unidade":"CER III TEA","P01":"Ótimo","P02":"Bom","P03":"Bom","P04":"Eu nunca fiz","P05":"Ela é muito dedicada  ","createdat":"2026-01-29"},{"id":"1726","unidade":"CER III TEA","P01":"Bom","P02":"Ótimo","P03":"Ótimo","P04":"Eu fiz e tive retorno rápido","P05":"profissional maravilhosa mi ajuda muito em outro questão q precisei ... ","createdat":"2026-01-29"},{"id":"1333","unidade":"CENTRO DE ESPECIALIDADE DE ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Muito bom atendimento, profissionais capacitados e atenciosos ","createdat":"2026-01-29"},{"id":"1759","unidade":"UBS AGUA BRANCA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Muito bom ","createdat":"2026-01-29"},{"id":"1768","unidade":"UBS AGUA BRANCA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Maravilhosa como sempre ❤️❤️","createdat":"2026-01-29"},{"id":"1683","unidade":"CER III TEA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Nota 10, tudo foi tranquilo e incrível, todos estão de parabéns pelo trabalho ","createdat":"2026-01-29"},{"id":"1790","unidade":"UBS AGUA BRANCA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Daniel e jente fina ,entende muito de todos os assuntos pertinente a saude muito educado e principalmente profissional ","createdat":"2026-01-29"},{"id":"1802","unidade":"UBS AGUA BRANCA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu fiz e tive retorno demorado","P05":"Muito bom atendimento, informações  ótimas. Não deixa dúvidas, ","createdat":"2026-01-29"},{"id":"1527","unidade":"CENTRO DE REFERENCIA ESPECIALIZADA JULIA TENORIO","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Parabéns  ","createdat":"2026-01-29"},{"id":"1804","unidade":"UBS AGUA BRANCA","P01":"Ótimo","P02":"Bom","P03":"Bom","P04":"Eu nunca fiz","P05":"Profissional atencioso","createdat":"2026-01-29"},{"id":"1807","unidade":"UBS AGUA BRANCA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Parabenizar o Dr. Pela atenção na escuta, nas considerações feitas em relação à leitura dos resultados dos exames e encaminhamento profissional e pedido de exame. Muito atencioso e simpático. Gratidão ","createdat":"2026-01-29"},{"id":"1832","unidade":"UBS AGUA BRANCA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu fiz e nunca tive retorno","P05":"Excelente atendimento!_x000D_\n","createdat":"2026-01-29"},{"id":"1253","unidade":"CENTRO DE ESPECIALIDADE DE ILHABELA","P01":"Bom","P02":"Bom","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Gostei do atendimento, o profissional  respondeu minhas perguntas, deu início ao tratamento _x000D_\nGostei _x000D_\nObrigada ","createdat":"2026-01-29"},{"id":"1838","unidade":"UBS AGUA BRANCA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"O atendimento que recebi foi excelente, o Dr Luís Felipe é um médico sensacional e toda equipe é maravilhosa!","createdat":"2026-01-29"},{"id":"1847","unidade":"UBS AGUA BRANCA","P01":"Ótimo","P02":"Ótimo","P03":"Regular","P04":"Eu nunca fiz","P05":"O atendimento super rápido, as enfermeiras são educadas e pessoas boas. E o doutor excelente também! ","createdat":"2026-01-29"},{"id":"1716","unidade":"CER III TEA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Atendimento perfeito ","createdat":"2026-01-29"},{"id":"1852","unidade":"UBS AGUA BRANCA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu fiz e tive retorno rápido","P05":"Que dê mais atenção as pessoas com deficiência ","createdat":"2026-01-29"},{"id":"1850","unidade":"UBS AGUA BRANCA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu fiz e tive retorno rápido","P05":"Muito atencioso me ajudou muito nas mim questões de saúde ","createdat":"2026-01-29"},{"id":"1803","unidade":"UBS AGUA BRANCA","P01":"Bom","P02":"Bom","P03":"Bom","P04":"Eu nunca fiz","P05":"Bom atendimento.","createdat":"2026-01-29"},{"id":"1299","unidade":"CENTRO DE ESPECIALIDADE DE ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu fiz e tive retorno rápido","P05":"eu só tenho que agradecer pelo carinho e dedicação ","createdat":"2026-01-29"},{"id":"1889","unidade":"UBS ALTO DA BARRA VELHA ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Profissional   DR Leandro e ótimo defecado e humano  sou muito grata por poder contar cm vc muito obrigada por tudo que Deus abençoe sempre sua vida gratidão gratidão 🙏","createdat":"2026-01-29"},{"id":"1770","unidade":"UBS AGUA BRANCA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Enfermeira Andreia é uma profissional muito competente e experiente,e um ser humano muito acolhedora,só tenho coisas boas para falar dela.","createdat":"2026-01-29"},{"id":"1894","unidade":"UBS ALTO DA BARRA VELHA ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"O dr Leandro é um excelente profissional que atende os pacientes com carinho respeito e muito afeto por nao o retire do alto da barra 🥹","createdat":"2026-01-29"},{"id":"1902","unidade":"UBS ALTO DA BARRA VELHA ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Regular","P04":"Eu nunca fiz","P05":"Enfermeira atenciosa e comunicativa","createdat":"2026-01-29"},{"id":"1911","unidade":"UBS ALTO DA BARRA VELHA ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Parabéns pra toda a equipe ótimo profissionais Deus abençoe tds vcs sempre obrigado ótimo dia ","createdat":"2026-01-29"},{"id":"1921","unidade":"UBS ALTO DA BARRA VELHA ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Muito bom atendimento ","createdat":"2026-01-29"},{"id":"1776","unidade":"UBS AGUA BRANCA","P01":"Ótimo","P02":"Bom","P03":"Bom","P04":"Eu fiz e tive retorno rápido","P05":"Dr Daniel e um excelente profissional, sempre preocupado em atender da melhor forma seus pacientes ","createdat":"2026-01-29"},{"id":"1938","unidade":"UBS ALTO DA BARRA VELHA ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Bom","P04":"Eu nunca fiz","P05":"_x000D_\nÓtimo atendimento, tem me ajudado bastante.","createdat":"2026-01-29"},{"id":"1942","unidade":"UBS ALTO DA BARRA VELHA ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Bom","P04":"Eu nunca fiz","P05":"Obrigada, vc me ajudou bastante , sobre meu comportamento na escola e em casa","createdat":"2026-01-29"},{"id":"1944","unidade":"UBS ALTO DA BARRA VELHA ILHABELA","P01":"Regular","P02":"Regular","P03":"Regular","P04":"Eu nunca fiz","P05":"Não! ","createdat":"2026-01-29"},{"id":"1951","unidade":"UBS BARRA VELHA ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu fiz e tive retorno rápido","P05":"Muito profissional,atendimento maravilhoso,tirou todas minhas dúvidas.","createdat":"2026-01-29"},{"id":"1959","unidade":"UBS BARRA VELHA ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu fiz e tive retorno rápido","P05":"Como sempre atenciosas, nota 10","createdat":"2026-01-29"},{"id":"1931","unidade":"UBS ALTO DA BARRA VELHA ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Bom","P04":"Eu nunca fiz","P05":"Nao","createdat":"2026-01-29"},{"id":"2000","unidade":"UBS BARRA VELHA ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Eu amei ","createdat":"2026-01-29"},{"id":"1999","unidade":"UBS BARRA VELHA ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Deixou meus agradecimento a todos, profissionais dessa UBS da Barra baixa, Especial a Dra Valéria dentista ","createdat":"2026-01-29"},{"id":"1994","unidade":"UBS BARRA VELHA ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"A dr Geovane.maravilhosa atende  a gente muito bem !!!","createdat":"2026-01-29"},{"id":"2009","unidade":"UBS BARRA VELHA ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu fiz e tive retorno rápido","P05":"Gostei muito da médica!Tirei as minhas dúvidas com ela!A consulta foi sem pressa!Me deu toda atenção q eu precisa!Parabéns pra Dra,e o meu agradecimento ","createdat":"2026-01-29"},{"id":"2036","unidade":"UBS BARRA VELHA ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Melhor médica da família de Ilhabela ","createdat":"2026-01-29"},{"id":"1642","unidade":"CER III TEA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"​\"Passando para agradecer pelo atendimento impecável com o Henry! Sua atenção aos detalhes e paciência fazem toda a diferença. Somos muito gratos por ter você como profissional acompanhando ele!\"","createdat":"2026-01-29"},{"id":"2051","unidade":"UBS BARRA VELHA ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Ótimo profissional ","createdat":"2026-01-29"},{"id":"2045","unidade":"UBS BARRA VELHA ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Dra Martinha é super prestativa e atenciosa _x000D_\nQuero registrar meu elogio a ela","createdat":"2026-01-29"},{"id":"2060","unidade":"UBS BARRA VELHA ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Super atenciosa.","createdat":"2026-01-29"},{"id":"2065","unidade":"UBS BARRA VELHA ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Regular","P04":"Eu nunca fiz","P05":"Gostei atendimento rápido ❤️","createdat":"2026-01-29"},{"id":"2069","unidade":"UBS BARRA VELHA ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Bom","P04":"Eu nunca fiz","P05":"Médica atenciosa e prestativa ","createdat":"2026-01-29"},{"id":"2079","unidade":"UBS COSTA NORTE ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"A profissional está de parabéns!","createdat":"2026-01-29"},{"id":"2083","unidade":"UBS COSTA NORTE ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu fiz e tive retorno rápido","P05":"Tudo excelente _x000D_\nÓtima médica ótima equipe.","createdat":"2026-01-29"},{"id":"2086","unidade":"UBS COSTA NORTE ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Bom","P04":"Eu nunca fiz","P05":"Esse profissional está  de parabéns ","createdat":"2026-01-29"},{"id":"1922","unidade":"UBS ALTO DA BARRA VELHA ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Parabéns pelo trabalho e agradecer o cuidado.obrigada","createdat":"2026-01-29"},{"id":"2124","unidade":"UBS COSTA SUL I ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Muito prestativo ","createdat":"2026-01-29"},{"id":"2135","unidade":"UBS COSTA SUL I ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Melhor profissional que já existiu  na unidade do sul de ilhabela","createdat":"2026-01-29"},{"id":"2133","unidade":"UBS COSTA SUL I ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Excelente médico dr Igor","createdat":"2026-01-29"},{"id":"1501","unidade":"CENTRO DE REFERENCIA ESPECIALIZADA JULIA TENORIO","P01":"Ótimo","P02":"Ótimo","P03":"Bom","P04":"Eu nunca fiz","P05":"Não tenho nada a reclamar todas as vezes que eu precisei fui bem atendida. Não só com a dermatologista mas todos os outros profissionais .","createdat":"2026-01-29"},{"id":"2123","unidade":"UBS COSTA SUL I ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Ótimo atendimento ","createdat":"2026-01-29"},{"id":"2172","unidade":"UBS COSTA SUL I ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"A profissional Vanessa Salomão e resolutiva,tem uma escuta qualificada e se importa muito com próximo,sempre respeitando os princípios doutrinarios do SUS ,com excelência.","createdat":"2026-01-29"},{"id":"2070","unidade":"UBS BARRA VELHA ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu fiz e tive retorno rápido","P05":"Doutora vitória uma medica antesiosa  boa e eficiente no que fas","createdat":"2026-01-29"},{"id":"2202","unidade":"UBS ITAQUANDUBA ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu fiz e nunca tive retorno","P05":"Fiquei muito satisfeito. Atendimento muito bom ","createdat":"2026-01-29"},{"id":"2207","unidade":"UBS ITAQUANDUBA ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Foi ótimo sem nenhuma queixa atendimento foi excelente ","createdat":"2026-01-29"},{"id":"2233","unidade":"UBS ITAQUANDUBA ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Atendimento excelente com profissional de qualidade.","createdat":"2026-01-29"},{"id":"2245","unidade":"UBS ITAQUANDUBA ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Bom","P04":"Eu nunca fiz","P05":"Como funcionaria e usuária da ubs itaquanduba vejo como os profissionais se desdobram pra dar um melhor atendimento.","createdat":"2026-01-29"},{"id":"2170","unidade":"UBS COSTA SUL I ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Parabenizar e agradecer pelo atendimento, acolhimento de toda equipe. Desde a recepção que sempre com muita educação até às enfermeiras, sem falar dos médicos. Gratidão 🙏","createdat":"2026-01-29"},{"id":"2243","unidade":"UBS ITAQUANDUBA ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Quero aqui agradecer! Sempre que procuro a ubs, por algum motivo de saúde minha, ou resolver algo para alguém. Consigo sempre!","createdat":"2026-01-29"},{"id":"2256","unidade":"UBS ITAQUANDUBA ILHABELA","P01":"Ótimo","P02":"Bom","P03":"Regular","P04":"Eu fiz e tive retorno rápido","P05":"Atenciosa","createdat":"2026-01-29"},{"id":"2266","unidade":"UBS ITAQUANDUBA ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Bom","P04":"Eu nunca fiz","P05":"Pessoal atencioso do porteiro a sala de consulta e de medicamentos nossa me senti acolhida obrigada a todos ","createdat":"2026-01-29"},{"id":"2271","unidade":"UBS ITAQUANDUBA ILHABELA","P01":"Não sabe/Não opinou","P02":"Péssimo","P03":"Péssimo","P04":"Eu nunca fiz","P05":"Me mandaram a data da consulta depois que já avia passado","createdat":"2026-01-29"},{"id":"2287","unidade":"UBS PEREQUE ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Bom","P04":"Eu nunca fiz","P05":"Excelente trabalho de todos","createdat":"2026-01-29"},{"id":"2047","unidade":"UBS BARRA VELHA ILHABELA","P01":"Bom","P02":"Bom","P03":"Ruim","P04":"Eu nunca fiz","P05":"Gostaria de comentar a respeito do horário das consultas...pois sem diversas vezes fui atendida quase 1:30 após o horário agendado...isso é algo que poderia melhorar ","createdat":"2026-01-29"},{"id":"2308","unidade":"UBS PEREQUE ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu fiz e tive retorno rápido","P05":"Dr Mateus é maravilhoso. Um dos melhores profissionais da rede. Só gratidão por ele ser o nosso pediatra. ","createdat":"2026-01-29"},{"id":"2333","unidade":"UBS PEREQUE ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu fiz e tive retorno rápido","P05":"Muito atencioso, prestativo e esclarecedor ","createdat":"2026-01-29"},{"id":"2326","unidade":"UBS PEREQUE ILHABELA","P01":"Bom","P02":"Bom","P03":"Regular","P04":"Eu nunca fiz","P05":"Vamos que vamos ","createdat":"2026-01-29"},{"id":"2353","unidade":"UBS PEREQUE ILHABELA","P01":"Bom","P02":"Bom","P03":"Não sabe/Não opinou","P04":"Eu nunca fiz","P05":"Meu atendimento foi a menos de 1 no setor raio x . Foi demanda  espontânea sem agendamento. Pouca espera . Local organizado e limpo , boa acomodação , funcionários recepção e raio x educados e atenciosos ","createdat":"2026-01-29"},{"id":"2349","unidade":"UBS PEREQUE ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Bom","P04":"Eu fiz e tive retorno demorado","P05":"E uma boa médica_x000D_\nMais para poder fazer.melhor avaliação somente com a continuidade dos atendimentos._x000D_\nPS._x000D_\nPois quando vc se acostuma com um médico ele é retirado do posto._x000D_\nCaso. DR Pablo um excelente médico demitido por essa secretária.","createdat":"2026-01-29"},{"id":"2240","unidade":"UBS ITAQUANDUBA ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ruim","P04":"Eu nunca fiz","P05":"Agradeço aos profissionais dessa unidade ","createdat":"2026-01-29"},{"id":"2348","unidade":"UBS PEREQUE ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Super atenciosamente com minha mãe. E isso para o paciente qdo para a família não tem preço _x000D_\nGratidão ","createdat":"2026-01-29"},{"id":"2347","unidade":"UBS PEREQUE ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Até agora  só tenho a agradecer, obg ","createdat":"2026-01-29"},{"id":"1229","unidade":"CENTRO DE ESPECIALIDADE DE ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Ele e muito atencioso, atende no horário, não enrola os pacientes. E eu preciso muito do atendimento do Dr Flávio. Pois , ele já me acompanha a 4 anos , com minha hipotireoidismo. E estou muito bem agora com o tratamento. E minha família, TB tem o mesmo problema, todas passamos com ele. Não temos nada a reclamar, só elogios. Espero que vcs não tirem ele da rede, e sim , coloque mais dias para atendimento, pois os retornos, ficam muito longe . Grata. ","createdat":"2026-01-29"},{"id":"2367","unidade":"UBS PEREQUE ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Profissional atenciosa e competente.","createdat":"2026-01-29"},{"id":"2193","unidade":"UBS ITAQUANDUBA ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"A enfermeira Evelyn é muito profissional e empática! Porém nesta última consulta tive um problema com a atendente.Cheguei pra fazer o acolhimento com a enfermeira 13:40, dei meus dados e ela pediu pra aguardar, assim eu fiz, mas todos que estavam aguardando foram atendidos até quem tinha chegado depois de mim, e eu fiquei por último, pq a atendente não fez a minha ficha! Sorte q a enfermeira aceitou me atender pois já havia passado da hora do atendimento dela.nem pedido de desculpas recebi da atendente, que só me disse que era pq estava sozinha...porém só minha ficha ela deixou de fazer! ","createdat":"2026-01-29"},{"id":"2291","unidade":"UBS PEREQUE ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Fui atendido pela dr Mariana,que me examinou e já me medicou ,super atenciosa !_x000D_\n","createdat":"2026-01-29"},{"id":"1703","unidade":"CER III TEA","P01":"Regular","P02":"Ruim","P03":"Regular","P04":"Eu fiz e nunca tive retorno","P05":"Por ser primeira consulta, ele deveria ter um olhar de acolhimento e sem julgamentos, visto que não conhece ainda o paciente. Tirar conclusões no primeiro atendimento não é legal. Ouvi falas ótimas sobre ele antes do atendimento, mas pode ser que nas próximas consultas eu consigo ver esses elogios que ouvi sobre ele. ","createdat":"2026-01-29"},{"id":"2157","unidade":"UBS COSTA SUL I ILHABELA","P01":"Bom","P02":"Bom","P03":"Bom","P04":"Eu nunca fiz","P05":"Satisfeito com atendimento recebido ","createdat":"2026-01-29"},{"id":"2137","unidade":"UBS COSTA SUL I ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Ótimo médico ,espero que permaneça por muito tempo obrigada ","createdat":"2026-01-29"},{"id":"2301","unidade":"UBS PEREQUE ILHABELA","P01":"Ótimo","P02":"Bom","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Calma atenciosa escuta os pacientes amei sabe atender os pacientes sem descriminação social amei","createdat":"2026-01-29"},{"id":"2362","unidade":"UBS PEREQUE ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu fiz e tive retorno demorado","P05":"A profissional e muito boa me ajudou bastante ","createdat":"2026-01-29"},{"id":"2092","unidade":"UBS COSTA NORTE ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu fiz e tive retorno rápido","P05":"Gostaria de registrar meu elogio ao atendimento prestado pela Dra. Jéssica na UBS Costa Norte. Ela atendeu a mim e à minha filha com extrema dedicação, paciência e competência. É raro encontrar profissionais tão atenciosos no serviço público, e o cuidado dela fez toda a diferença para o nosso bem-estar. Parabéns pela excelente profissional.","createdat":"2026-01-29"},{"id":"1890","unidade":"UBS ALTO DA BARRA VELHA ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"O Dr Leandro e toda equipe são maravilhosos.nada a questionar ","createdat":"2026-01-29"},{"id":"1805","unidade":"UBS AGUA BRANCA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu fiz e tive retorno rápido","P05":"Foi bem atendida, prestativo atencioso, muito profissional _x000D_\n","createdat":"2026-01-29"},{"id":"1842","unidade":"UBS AGUA BRANCA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu fiz e tive retorno rápido","P05":"Atendimento rápido, em todo Polo, desde da recepção ao médico. Total simpatia e auto cuidado ","createdat":"2026-01-29"},{"id":"2222","unidade":"UBS ITAQUANDUBA ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu fiz e tive retorno rápido","P05":"Muito obrigada pela atenção parabéns ","createdat":"2026-01-29"},{"id":"1175","unidade":"CENTRO DE ESPECIALIDADE DE ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Extremamente  satisfeita com o atendimento e pontualidade, ao começar  com a recepção, onde foram mt prestativos e atenciosos, tbm  com o atendimento profissional em que o FISIOTERAPEUTA ELIVELTON exerce seu conhecimento em aliviar a dor, no intuito da cura com o tratamento prestado a mim. _x000D_\nDemorou um pouco para começar  as sessões, tendo consciência  que a demanda de pacientes é gigante, no mais, estou satisfeitíssima no geral._x000D_\n_x000D_\nGratidão. ","createdat":"2026-01-29"},{"id":"1329","unidade":"CENTRO DE ESPECIALIDADE DE ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Bom","P04":"Eu nunca fiz","P05":"Muito bom o atendimento de todos que trabalham nesta instituição.  ","createdat":"2026-01-29"},{"id":"2264","unidade":"UBS ITAQUANDUBA ILHABELA","P01":"Bom","P02":"Ótimo","P03":"Péssimo","P04":"Eu nunca fiz","P05":"O serviço e muito bom mas precisamos de mais profissionais pra atender com mais agilidade sem sobrecarregar os atendentes e profissionais ","createdat":"2026-01-29"},{"id":"1161","unidade":"CENTRO DE ESPECIALIDADE DE ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"O atendimento da Terapeuta Carolina, está sendo imensamente importante para minha recuperação, ela é acolhedora, atenciosa e eficiente. Sou muito grata por poder ter esse atendimento com ela. Ela escuta minhas queixas, me orienta e aconselha. Fiquei muito satisfeita. Parabéns!!!","createdat":"2026-01-29"},{"id":"2355","unidade":"UBS PEREQUE ILHABELA","P01":"Bom","P02":"Bom","P03":"Bom","P04":"Eu nunca fiz","P05":"Fui atendida a contento ","createdat":"2026-01-29"},{"id":"1688","unidade":"CER III TEA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Quero agradecer a Renata Fono pelo atendimento prestado ao meu filho ela é uma excelente profissional desde que meu filho começou a ser atendido o José evoluiu muito ,os atendimentos dela são diferenciados percebe que realmente ama o que faz ","createdat":"2026-01-29"},{"id":"2164","unidade":"UBS COSTA SUL I ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu fiz e nunca tive retorno","P05":"Sobre os profissionais só tenho a agradecer ! Meu único problema com a UBS e que antigamente tínhamos 2 carros e 2 motorista para a saúde do sul , já que tudo fica longe e a maioria dos usuários são idosos ou como eu PCD que não tem carro . Um carro só na UBS sul não dá vazão ... Precisamos de mas um carro . ","createdat":"2026-01-29"},{"id":"2012","unidade":"UBS BARRA VELHA ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu fiz e tive retorno rápido","P05":"Ótima medica atenciosa paciente explica tudo não fica nunca nenhuma dúvida tudo esclarecido amei o atendimento nota 10000","createdat":"2026-01-29"},{"id":"2049","unidade":"UBS BARRA VELHA ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Um ótimo atendimento a atenção que dar para os pacientes é excelente só agradecer 👏😍🙏","createdat":"2026-01-29"},{"id":"1798","unidade":"UBS AGUA BRANCA","P01":"Bom","P02":"Bom","P03":"Bom","P04":"Eu nunca fiz","P05":"Nada é tão bom que não possa ser melhorado.","createdat":"2026-01-29"},{"id":"1370","unidade":"CENTRO DE ESPECIALIDADE DE ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Atendimento excelente, continuem assim","createdat":"2026-01-29"},{"id":"1227","unidade":"CENTRO DE ESPECIALIDADE DE ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Todo atendimento desde a recepção até ao consultório médico,foram ótimos. _x000D_\nO único problema é que qdo cheguei não tinha nenhuma recepcionista no local,sendo que tinha três _x000D_\nEntão a minha única sugestão é que sempre fique uma na recepção. _x000D_\nApesar de todoas serem muito atendentes._x000D_\nGrata.","createdat":"2026-01-29"},{"id":"1337","unidade":"CENTRO DE ESPECIALIDADE DE ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu fiz e tive retorno rápido","P05":"Perfeito! Parabéns Ilhabela!!","createdat":"2026-01-29"},{"id":"2253","unidade":"UBS ITAQUANDUBA ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Péssimo","P04":"Eu nunca fiz","P05":"Deveria seguir mais a risca quando temos horário agendado. Porque mesmo agendando sempre ultrapassam mais de 1h e meia para sermos atendidos. De resto estão de parabéns ","createdat":"2026-01-29"},{"id":"1276","unidade":"CENTRO DE ESPECIALIDADE DE ILHABELA","P01":"Bom","P02":"Bom","P03":"Bom","P04":"Eu nunca fiz","P05":"Muito bom","createdat":"2026-01-29"},{"id":"1582","unidade":"CER III TEA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"A qualidade do atendimento é muito boa!Equipe de grande acolhimento desde a recepção até os profissionais de acompanhamento.","createdat":"2026-01-29"},{"id":"2295","unidade":"UBS PEREQUE ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Dra. Mariana é excelente profissional, médica que sempre está no caminho certo em relação a minha saúde, espero que ela permaneça na UBS do Perequê, agradeço muito.","createdat":"2026-01-29"},{"id":"1528","unidade":"CENTRO DE REFERENCIA ESPECIALIZADA JULIA TENORIO","P01":"Péssimo","P02":"Ruim","P03":"Regular","P04":"Eu nunca fiz","P05":"Boa tarde. Minha reclamação ao médico é: a forma como ele me atendeu. _x000D_\nEle simplesmente apontou para a cadeira sem falar nada e a colocação da pergunta do motivo de eu estar passando com ele foi colocada como \" o que vc esta fazendo aqui\". E quando eu comecei a explicar que estou com dor de ouvido esquerdo, me interrompeu e disse que muitas pessoas vão la somente com dor de ouvido._x000D_\nPerguntou qual médico que me encaminhou, e ao relatar que foi o medico do meu posto o mesmo ignorou a informação._x000D_\nMal quis ouvir meu histórico que tenho desde do nascimento._x000D_\nMinha indignação nao é o diagnóstico, que pode ser verdadeira. Mas sim, do fato da maneira como me tratou, eu nao fui pedir atestado, mas sim encontrar o motivo de estar com dor. Além de me relatar que no meu caso nao é com ele, porem como poderei nao sei o que esta me causando dor preciso primeiro passar com um especialista.","createdat":"2026-01-29"},{"id":"1933","unidade":"UBS ALTO DA BARRA VELHA ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Excelente atendimento ","createdat":"2026-01-29"},{"id":"1785","unidade":"UBS AGUA BRANCA","P01":"Ótimo","P02":"Ótimo","P03":"Bom","P04":"Eu nunca fiz","P05":"Sempre é na recepção que os horários são demorados do atendimento  por que passa prioridades na frente,eu  era do itaguassu fui bem atendida até me surpreendi com o médico muito atencioso Dr Daniel  passei em consultório e já vi melhora n com.a medicacao.so agendamento que precisaria dar uma ageitada ,muitos vão no mesmo horário e ficam reclamando da demora.mas estou agradecida pir que nao tinha agendado e estava com dorbe sai dali sem dores e medicada .Deus abençoe  este medico","createdat":"2026-01-29"},{"id":"1483","unidade":"CENTRO DE REFERENCIA ESPECIALIZADA JULIA TENORIO","P01":"Ótimo","P02":"Ótimo","P03":"Regular","P04":"Eu nunca fiz","P05":"O atendimento foi otimo ....um otimo profissional...porem so o horario q nao foi atendido no horario certo marcou tds no mesmo horario","createdat":"2026-01-29"},{"id":"1265","unidade":"CENTRO DE ESPECIALIDADE DE ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Não ","createdat":"2026-01-29"},{"id":"2327","unidade":"UBS PEREQUE ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Todas as vezes que me dirigi a UBS Perequê fui muito bem atendida. A Natália foi muito atenciosa.","createdat":"2026-01-29"},{"id":"1925","unidade":"UBS ALTO DA BARRA VELHA ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Bom","P04":"Eu nunca fiz","P05":"Todas as vezes que preciso sempre sou muito bem atendida ","createdat":"2026-01-29"},{"id":"1755","unidade":"CS III DE ILHABELA","P01":"Ótimo","P02":"Bom","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Bom estive na santa casa Recebi atendimento Rápido Devido ao caso","createdat":"2026-01-29"},{"id":"1212","unidade":"CENTRO DE ESPECIALIDADE DE ILHABELA","P01":"Ótimo","P02":"Bom","P03":"Ótimo","P04":"Eu fiz e nunca tive retorno","P05":"Sãos excelentes profissionais muito obg a todos ","createdat":"2026-01-29"},{"id":"1709","unidade":"CER III TEA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"São fisioterapeutas muito bons sempre atencioso com a gente,principalmente dr Vinícius,  valeska Flávia sempre copetentes no q faz. Obrigada","createdat":"2026-01-29"},{"id":"249","unidade":"CENTRO DE REFERENCIA ESPECIALIZADA JULIA TENORIO","P01":"Bom","P02":"Bom","P03":"Bom","P04":"Eu nunca fiz","P05":"Só sinto que demora muito o atendimento do médico da família, quando é para dar os resultados de exames pedido, as vezes nem ficamos sabendo se está tudo bem, iniciamos um tratamento mas não tem retorno… tem que voltar para agendar a consulta demora até três meses para ser atendida.","createdat":"2026-01-22"},{"id":"2148","unidade":"UBS COSTA SUL I ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Excelente profissional ","createdat":"2026-01-29"},{"id":"2139","unidade":"UBS COSTA SUL I ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Bom","P04":"Eu nunca fiz","P05":"Desnecessário totalmente o paciente ter de chegar às 7:00 para ser atendido 12:30 isso já aconteceu comigo. ","createdat":"2026-01-29"},{"id":"1219","unidade":"CENTRO DE ESPECIALIDADE DE ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu fiz e tive retorno rápido","P05":"Sempre um bom atendimento com ética, profissionalismo e lealdade ","createdat":"2026-01-29"},{"id":"2216","unidade":"UBS ITAQUANDUBA ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu fiz e tive retorno rápido","P05":"A chamada para consulta poderia ser melhor de resto  esta tudo perfeito ","createdat":"2026-01-29"},{"id":"53","unidade":"CENTRO DE ESPECIALIDADE DE ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Estou muito satisfeita com o atendimento da profissional. Muito dedicada e prestativa.","createdat":"2026-01-22"},{"id":"2246","unidade":"UBS ITAQUANDUBA ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Bom","P04":"Eu nunca fiz","P05":"Muito bom 👍 ","createdat":"2026-01-29"},{"id":"1880","unidade":"UBS ALTO DA BARRA VELHA ILHABELA","P01":"Bom","P02":"Bom","P03":"Regular","P04":"Eu fiz e nunca tive retorno","P05":"Acesso ao profissional...","createdat":"2026-01-29"},{"id":"6884","unidade":"ACADEMIA DE SAUDE ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Uma pessoa muito atenciosa,  educada e bem profissional! ","createdat":"2026-03-30"},{"id":"6885","unidade":"ACADEMIA DE SAUDE ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"O profissional  com muita empatia e profissionalismo,  satisfeita com o atendimento ","createdat":"2026-03-30"},{"id":"6974","unidade":"CENTRO DE ESPECIALIDADE DE ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu fiz e nunca tive retorno","P05":"Pela profissional excelente atendimento muito bom ","createdat":"2026-03-30"},{"id":"6919","unidade":"CENTRO DE ESPECIALIDADE DE ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu fiz e nunca tive retorno","P05":"Os 2 profissionais da fisioterapia que eu passei são ótimos...","createdat":"2026-03-30"},{"id":"5683","unidade":"CENTRO DE ESPECIALIDADE DE ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Sim uma excelente médica mi atendeu com muito carinho nota 1000","createdat":"2026-03-19"},{"id":"5682","unidade":"CENTRO DE ESPECIALIDADE DE ILHABELA","P01":"Bom","P02":"Ótimo","P03":"Bom","P04":"Eu nunca fiz","P05":"Foi um bom atendimento, nos ouviu e orientou, com atenção e educação. Agradece o atendimento.","createdat":"2026-03-19"},{"id":"5693","unidade":"CENTRO DE ESPECIALIDADE DE ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu fiz e tive retorno rápido","P05":"Todos os profissionais são excelentes.","createdat":"2026-03-19"},{"id":"5717","unidade":"CENTRO DE ESPECIALIDADE DE ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Muito boa profissional. Muito atenciosa otima","createdat":"2026-03-19"},{"id":"5745","unidade":"CENTRO DE ESPECIALIDADE DE ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu fiz e tive retorno rápido","P05":"Profissional excelente, com ótima conduta e muito paciente,  a geovanna é muito boa. ","createdat":"2026-03-19"},{"id":"5740","unidade":"CENTRO DE ESPECIALIDADE DE ILHABELA","P01":"Ótimo","P02":"Bom","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Os profissionais da fisioterapia são ótimos, passei com Henrique e a Flávia... adorei!","createdat":"2026-03-19"},{"id":"5735","unidade":"CENTRO DE ESPECIALIDADE DE ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Parabéns, atendimento ótimo com profissionais super atenciosos","createdat":"2026-03-19"},{"id":"5754","unidade":"CENTRO DE ESPECIALIDADE DE ILHABELA","P01":"Bom","P02":"Regular","P03":"Regular","P04":"Eu nunca fiz","P05":"Me senti bem atendido","createdat":"2026-03-19"},{"id":"5710","unidade":"CENTRO DE ESPECIALIDADE DE ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Atendeu no horário certinho sem demora muito bom ","createdat":"2026-03-19"},{"id":"5755","unidade":"CENTRO DE ESPECIALIDADE DE ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Todos são ótimos !! ","createdat":"2026-03-19"},{"id":"5785","unidade":"CENTRO DE ESPECIALIDADE DE ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu fiz e tive retorno rápido","P05":"Gostei tanto do atendimento que não queria ter recebido alta,mas eu sei que tem outras pessoas precisando deste atendimento, continua sendo está pessoa maravilhosa que você é Leonardo🙏🙏🙏","createdat":"2026-03-19"},{"id":"5774","unidade":"CENTRO DE ESPECIALIDADE DE ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Não sabe/Não opinou","P04":"Eu nunca fiz","P05":"Não foi agendado, o profissional veio em visita domiciliar.","createdat":"2026-03-19"},{"id":"5796","unidade":"CENTRO DE ESPECIALIDADE DE ILHABELA","P01":"Ótimo","P02":"Bom","P03":"Ótimo","P04":"Eu nunca fiz","P05":"So na recepção tem uma atendente que parece nunca está de bom humor  uma coroa  de óculos  nem um bom dia que é o mínimo para um ser humano  eka faz ","createdat":"2026-03-19"},{"id":"5810","unidade":"CENTRO DE ESPECIALIDADE DE ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu fiz e tive retorno rápido","P05":"Profissional atenciosa,educada, faz o atendimento com o sorriso no rosto e isso faz toda diferença, eu simplesmente adorei o atendimento.","createdat":"2026-03-19"},{"id":"5816","unidade":"CENTRO DE ESPECIALIDADE DE ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu fiz e tive retorno rápido","P05":"Ela é maravilhosa, super atenciosa com os pacientes e eficiente no trabalho, faz a diferença na nossa saúde de Ilhabela ","createdat":"2026-03-19"},{"id":"5830","unidade":"CENTRO DE ESPECIALIDADE DE ILHABELA","P01":"Péssimo","P02":"Regular","P03":"Regular","P04":"Eu fiz e tive retorno rápido","P05":"Demora no atendimento, medico não se prestou a atenção, foi ríspido ao atender, não examinou o paciente, apenas prescreveu os exames que precisavam ser feitos para uma próxima consulta ","createdat":"2026-03-19"},{"id":"5708","unidade":"CENTRO DE ESPECIALIDADE DE ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Excelente profissional, atendimento super humanizado, teve paciência com meu filho que é hiperativo. Só tenho a agradecer. Minha sugestão é colocar o anestésico para fazer a naso com um tempo próximo ao exame pois o efeito é de curta duração e meu filho sentiu dor na última que ele fez.","createdat":"2026-03-19"},{"id":"5848","unidade":"CENTRO DE ESPECIALIDADE DE ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Sim foi muito bom a espera foi pequena foi bem atendida continuo assim pra melhor","createdat":"2026-03-19"},{"id":"5784","unidade":"CENTRO DE ESPECIALIDADE DE ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Estou maravilhada com o atendimento que recebo da equipe e digo que ainda bem que estou na ilhabela e que me machuquei aqui, pois o atendimento pelo SUS é totalmente diferenciado. Parabéns ","createdat":"2026-03-19"},{"id":"5718","unidade":"CENTRO DE ESPECIALIDADE DE ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu fiz e tive retorno rápido","P05":"Sou grata a todos que me atende, doutor Alexandre, doutora Martinha, minha agente de saúde, doutora Carolina joanon... Não lembro o nome de todos.obrigado a todos vcs que nos atende ","createdat":"2026-03-19"},{"id":"5821","unidade":"CENTRO DE ESPECIALIDADE DE ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu fiz e nunca tive retorno","P05":"Tenho frequentado este espaço de fisioterapia com três profissionais que para mim foram maravilhosos.","createdat":""},{"id":"5748","unidade":"CENTRO DE ESPECIALIDADE DE ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Por ser deficiente fiscal o atendimento foi muito bom. Quero observar que como necessito de receita para dieta entrar o prazo de nova receita deveria ser maior. Hoje é 45 dias e deveria ser 120 dias. ","createdat":"2026-03-19"},{"id":"5703","unidade":"CENTRO DE ESPECIALIDADE DE ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Atendimento ótimo 🙏🏼","createdat":"2026-03-19"},{"id":"5751","unidade":"CENTRO DE ESPECIALIDADE DE ILHABELA","P01":"Ruim","P02":"Péssimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Profissional muito simpática, mas muito desatualizada da medicina atual, como nutricionista segue um padrão igual para todos, atualização hj em dia é tudo, a impressão que ficou, é que eu sei mais do que a própria Profissional ","createdat":"2026-03-19"},{"id":"5801","unidade":"CENTRO DE ESPECIALIDADE DE ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Quero deixar os parabéns e o profissionalismo para o dr. Luian e dr. Henrique agradecer Sr luian pelo tratamento na minha recuperação cuidados . Deixo aqui o meu muito obrigado ....e todos da santa casa pelo atendimento 🙏","createdat":"2026-03-19"},{"id":"6893","unidade":"CENTRO DE ESPECIALIDADE DE ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Excelente  profissional, esta de parabéns. ","createdat":"2026-03-30"},{"id":"6894","unidade":"CENTRO DE ESPECIALIDADE DE ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Ana Lúcia é muito atenciosa, pronta a auxiliar em dúvidas e a orientar sobre queixas, além de ser muito simpática e prestativa.","createdat":"2026-03-30"},{"id":"6903","unidade":"CENTRO DE ESPECIALIDADE DE ILHABELA","P01":"Bom","P02":"Ótimo","P03":"Bom","P04":"Eu fiz e tive retorno rápido","P05":"os profissional são maravilhosos um atadimendo muito bom parabéns pra todos prispalmente pra a profissional que mim atende a Calorina","createdat":"2026-03-30"},{"id":"6981","unidade":"CENTRO DE ESPECIALIDADE DE ILHABELA","P01":"Ótimo","P02":"Regular","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Estao na minha opiniao esta otimo nunca tive problemas .obrigada","createdat":"2026-03-30"},{"id":"7434","unidade":"UBS AGUA BRANCA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu fiz e tive retorno rápido","P05":"Ótimo ","createdat":"2026-03-30"},{"id":"6944","unidade":"CENTRO DE ESPECIALIDADE DE ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"O Dr. Leonardo é muito gentil, atencioso e dedicado. Um profissional, realmente, importantíssimo. Muito obrigado!","createdat":"2026-03-30"},{"id":"6963","unidade":"CENTRO DE ESPECIALIDADE DE ILHABELA","P01":"Bom","P02":"Bom","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Atendimento ótimo da equipe da recepção, não tenho nenhuma queixa. ","createdat":"2026-03-30"},{"id":"6942","unidade":"CENTRO DE ESPECIALIDADE DE ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu fiz e nunca tive retorno","P05":"Não tenho o que reclamar.Fui muito bem atendida, atenciosa as minhas queixas e resolvida a minha situação momentânea de saúde. Obrigada?","createdat":"2026-03-30"},{"id":"5881","unidade":"CENTRO DE INCENTIVO AO ALEITAMENTO MATERNO","P01":"Ótimo","P02":"Ótimo","P03":"Bom","P04":"Eu nunca fiz","P05":"Muito boa a conduta das profissionais em conduzir as orientações sobre a nutrição gestacional ","createdat":""},{"id":"7003","unidade":"CENTRO DE INCENTIVO AO ALEITAMENTO MATERNO","P01":"Regular","P02":"Péssimo","P03":"Bom","P04":"Eu nunca fiz","P05":"Acredito que ela deveria ser mais simpática, e ter mais delicadeza para falar, e abraçar mais o paciente de forma mais compreensiva. ","createdat":"2026-03-30"},{"id":"7016","unidade":"CENTRO DE INCENTIVO AO ALEITAMENTO MATERNO","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu fiz e tive retorno rápido","P05":"Sim com toda certeza, principalmente para o grupo da maternidade do período da manhã e noite são maravilhosas me trataram muito bem ❤️‍🩹 ","createdat":""},{"id":"5907","unidade":"CENTRO DE REFERENCIA ANIMAL","P01":"Bom","P02":"Bom","P03":"Bom","P04":"Eu nunca fiz","P05":"Sempre que precisamos do serviço do CRA, somos bem atendidos.","createdat":"2026-03-19"},{"id":"5895","unidade":"CENTRO DE REFERENCIA ANIMAL","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Dra. Nathalie é ser humano incrível, nos atende e nos orienta de maneira sem igual. As meninas da recepção também são super educadas e gentis. ","createdat":"2026-03-19"},{"id":"5908","unidade":"CENTRO DE REFERENCIA ANIMAL","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu fiz e tive retorno rápido","P05":"Profissional maravilhosa e muito competente....","createdat":"2026-03-19"},{"id":"5901","unidade":"CENTRO DE REFERENCIA ANIMAL","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Quero agradecer pela atenção e pretatuvidades de todos os envolvidos neste trabalho de suma importância que o CRA faz aqui na ilha! Estão todos de Parabéns !","createdat":"2026-03-19"},{"id":"5890","unidade":"CENTRO DE REFERENCIA ANIMAL","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Otima profissional, alias todos do CRA, meu theo sempre foi muito be recebido e cuidado","createdat":"2026-03-19"},{"id":"5894","unidade":"CENTRO DE REFERENCIA ANIMAL","P01":"Ótimo","P02":"Bom","P03":"Bom","P04":"Eu nunca fiz","P05":"Ótimo atendimento  ,não  tenho nada ah reclamar","createdat":"2026-03-19"},{"id":"5897","unidade":"CENTRO DE REFERENCIA ANIMAL","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Profissional exemplar ","createdat":"2026-03-19"},{"id":"7038","unidade":"CENTRO DE REFERENCIA ANIMAL","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu fiz e tive retorno rápido","P05":"A Dra: Valerie é uma profissional de excelência, muito atenciosa, cuidadosa , amorosa com meus pets. ","createdat":"2026-03-30"},{"id":"5887","unidade":"CENTRO DE REFERENCIA ANIMAL","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu fiz e tive retorno rápido","P05":"O atendimento e atenção dos funcionários foram excelentes,meus agradecimentos","createdat":"2026-03-19"},{"id":"5906","unidade":"CENTRO DE REFERENCIA ANIMAL","P01":"Bom","P02":"Bom","P03":"Bom","P04":"Eu nunca fiz","P05":"Gostei do atendimento, muito atenciosa, carinhosa e eficiente. Só fiquei desapontada que não existe a oferta da vacina V5 para gatos, uma vez que é muito importante cuidar da leucemia de gatos, que é uma epidemia aqui em Ilhabela","createdat":"2026-03-19"},{"id":"7035","unidade":"CENTRO DE REFERENCIA ANIMAL","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Gostaria de deixar um elogio a veterinária Natalie,que faz um atendimento diferenciado com os pacientes,sempre mantendo uma ambiente saudável e agradável ao  nossos pet.","createdat":""},{"id":"7099","unidade":"CENTRO DE REFERENCIA ESPECIALIZADA JULIA TENORIO","P01":"Ótimo","P02":"Ótimo","P03":"Bom","P04":"Eu nunca fiz","P05":"Atrasos de 30 min é tolerável ","createdat":"2026-03-30"},{"id":"5921","unidade":"CENTRO DE REFERENCIA ESPECIALIZADA JULIA TENORIO","P01":"Ótimo","P02":"Ótimo","P03":"Bom","P04":"Eu fiz e tive retorno rápido","P05":"Todos estão de parabéns pelo serviço,da pontualidade se tivesse tempo e espaço só tenho que agradecer por tudo estão de parabéns ","createdat":"2026-03-19"},{"id":"5914","unidade":"CENTRO DE REFERENCIA ESPECIALIZADA JULIA TENORIO","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"São todos muito educados, as meninas da recepção muito prestativas e os profissionais de saúde são excelentes no atendimento.nota mil pra todos!","createdat":"2026-03-19"},{"id":"5939","unidade":"CENTRO DE REFERENCIA ESPECIALIZADA JULIA TENORIO","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Eu gostaria muito de agradecer todos os profissionais desde da recepção até o atendimento só tenho gratidão, todos muito competentes sanaram todas as dúvidas me ajuda em tudo e super cuidado parabéns a todos envolvidos precisamos de pessoas competentes e realmente disposta a fazer a diferença 🙏❤️","createdat":"2026-03-19"},{"id":"5935","unidade":"CENTRO DE REFERENCIA ESPECIALIZADA JULIA TENORIO","P01":"Ótimo","P02":"Ótimo","P03":"Bom","P04":"Eu nunca fiz","P05":"Me surpreendi positivamente com o atendimento da dra Danielle. Excelente!","createdat":"2026-03-19"},{"id":"5971","unidade":"CENTRO DE REFERENCIA ESPECIALIZADA JULIA TENORIO","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Atendimento acolhedor e eficaz. ","createdat":"2026-03-19"},{"id":"5982","unidade":"CENTRO DE REFERENCIA ESPECIALIZADA JULIA TENORIO","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Estou muito grato por tudo ","createdat":""},{"id":"5986","unidade":"CENTRO DE REFERENCIA ESPECIALIZADA JULIA TENORIO","P01":"Bom","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Um excelente profissional super recomendo? Explica tudo com muita eficiência🥰","createdat":"2026-03-19"},{"id":"5932","unidade":"CENTRO DE REFERENCIA ESPECIALIZADA JULIA TENORIO","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"O serviço está excelente, todos estão de parabéns. ","createdat":"2026-03-19"},{"id":"5977","unidade":"CENTRO DE REFERENCIA ESPECIALIZADA JULIA TENORIO","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Parabéns a saúde ","createdat":"2026-03-19"},{"id":"5937","unidade":"CENTRO DE REFERENCIA ESPECIALIZADA JULIA TENORIO","P01":"Ótimo","P02":"Ótimo","P03":"Bom","P04":"Eu nunca fiz","P05":"A Graziele é uma excelente profissional, amei o atendimento com ela muito prestativa e atenciosa. ","createdat":"2026-03-19"},{"id":"5975","unidade":"CENTRO DE REFERENCIA ESPECIALIZADA JULIA TENORIO","P01":"Ótimo","P02":"Ótimo","P03":"Bom","P04":"Eu nunca fiz","P05":"Quero agradecer ao atendimento com Dra melissa e sua equipe como sempre muito anteciosos ","createdat":"2026-03-19"},{"id":"5973","unidade":"CENTRO DE REFERENCIA ESPECIALIZADA JULIA TENORIO","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"O atendimento foi excelente, o procedimento foi realizado com excelência, rápido e eficaz.","createdat":"2026-03-19"},{"id":"7043","unidade":"CENTRO DE REFERENCIA ESPECIALIZADA JULIA TENORIO","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu fiz e tive retorno demorado","P05":"O doutor Aldo é o melhor psiquiatra que eu já conheci na minha vida. Ele é muito profissional, gentil, atencioso. Se importa com os pacientes.","createdat":""},{"id":"7055","unidade":"CENTRO DE REFERENCIA ESPECIALIZADA JULIA TENORIO","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Uma profissional excelente ","createdat":"2026-03-30"},{"id":"7092","unidade":"CENTRO DE REFERENCIA ESPECIALIZADA JULIA TENORIO","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Dra Raissa maravilhosa!","createdat":"2026-03-30"},{"id":"6198","unidade":"CER III TEA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Ótimo ","createdat":"2026-03-19"},{"id":"7087","unidade":"CENTRO DE REFERENCIA ESPECIALIZADA JULIA TENORIO","P01":"Bom","P02":"Bom","P03":"Bom","P04":"Eu nunca fiz","P05":"Muito bom atendimento ","createdat":"2026-03-30"},{"id":"7059","unidade":"CENTRO DE REFERENCIA ESPECIALIZADA JULIA TENORIO","P01":"Ótimo","P02":"Bom","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Carlos é um profissional humano. Gostaria de sugerir que o agendamento da consulta fosse comunicado com um pouco mais de antecedência. Essa especificamente foi informada com 48 horas de antecedência em um tom de lembrete.","createdat":""},{"id":"7052","unidade":"CENTRO DE REFERENCIA ESPECIALIZADA JULIA TENORIO","P01":"Ótimo","P02":"Ótimo","P03":"Regular","P04":"Eu fiz e tive retorno rápido","P05":"Minha ultima comsulta , foi com a doutora arlet , e fui muiyo bem atendida , ela e uma pessoa muito legal e tranquila","createdat":"2026-03-30"},{"id":"7061","unidade":"CENTRO DE REFERENCIA ESPECIALIZADA JULIA TENORIO","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Bom dia o atendimento em sim é muito bom o que eu acho Ruin e a marcação e retorno das consultas ao longo prazo ","createdat":"2026-03-30"},{"id":"7110","unidade":"CER III TEA","P01":"Bom","P02":"Bom","P03":"Bom","P04":"Eu nunca fiz","P05":"Foi bom, sempre atenciosos.","createdat":"2026-03-30"},{"id":"7161","unidade":"CER III TEA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Fonoaudióloga Lenilde profissional exemplar . Esclarece as dúvidas , resultado rápido e eficaz no tratamento. ","createdat":"2026-03-30"},{"id":"7134","unidade":"CER III TEA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Só tenho que agradecer pelo acolhimento paciência e ver a revolução que o paciente está tendo é muito maravilhoso pra mim","createdat":"2026-03-30"},{"id":"7154","unidade":"CER III TEA","P01":"Ótimo","P02":"Bom","P03":"Bom","P04":"Eu fiz e tive retorno rápido","P05":"Ótima profissional ","createdat":"2026-03-30"},{"id":"7296","unidade":"CER III TEA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu fiz e tive retorno rápido","P05":"Super atenciosa, prestativa e bem humorada... Nota 10000000","createdat":"2026-03-30"},{"id":"7228","unidade":"CER III TEA","P01":"Ótimo","P02":"Bom","P03":"Bom","P04":"Eu fiz e tive retorno rápido","P05":"Fui bem atendida e bem orientada quanto aos procedimentos a serem realizados ","createdat":"2026-03-30"},{"id":"7165","unidade":"CER III TEA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu fiz e tive retorno rápido","P05":"Ótimo 👍 😘🙌🙏","createdat":"2026-03-30"},{"id":"7219","unidade":"CER III TEA","P01":"Bom","P02":"Bom","P03":"Bom","P04":"Eu nunca fiz","P05":"Sempre que vou a essa unidade sou muito bem antedida não tenho que reclamar Deus abençoe a todos vcs obrigada.","createdat":"2026-03-30"},{"id":"7278","unidade":"CER III TEA","P01":"Ótimo","P02":"Ótimo","P03":"Bom","P04":"Eu nunca fiz","P05":"Paula foi maravilhosa desde o primeiro atendimento, meu filho gosta muito dela. ","createdat":"2026-03-30"},{"id":"7251","unidade":"CER III TEA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Maravilhosa ","createdat":"2026-03-30"},{"id":"7297","unidade":"CER III TEA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"A Dra Viviam sempre foi muito prestativa com nossa família. Sempre quando há dúvidas, ela nos posiciona da melhor forma, ajudando no tratamento continuo de nossa filha. Ela mostra atenção e empatia com as crianças e aos pais.","createdat":""},{"id":"6013","unidade":"CER III TEA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"O Dr Aldo é um excelente profissional, muito atencioso e didático.  ","createdat":"2026-03-19"},{"id":"6010","unidade":"CER III TEA","P01":"Bom","P02":"Bom","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Sou muito grata pela nossa saúde em Ilhabela profissional muito bom","createdat":"2026-03-19"},{"id":"6028","unidade":"CER III TEA","P01":"Ótimo","P02":"Bom","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Sim, profissional fez um excelente acolhimento .","createdat":""},{"id":"6019","unidade":"CER III TEA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Este elogio vou fazer ao doutor Aldo excelente profissional,humano e verdadeiro ","createdat":"2026-03-19"},{"id":"6020","unidade":"CER III TEA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Estão todos profissionais de parabens na ","createdat":"2026-03-19"},{"id":"6065","unidade":"CER III TEA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu fiz e tive retorno rápido","P05":"Ela é muito atenciosa, ótima profissional, meu filho ama as consultas dela","createdat":""},{"id":"6059","unidade":"CER III TEA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Simplesmente, o melhor psicólogo! Muito gentil, sensível, inteligente e educado. Me ajudou demais! ","createdat":"2026-03-19"},{"id":"6113","unidade":"CER III TEA","P01":"Bom","P02":"Regular","P03":"Regular","P04":"Eu fiz e tive retorno demorado","P05":"Vcs fazem um atendimento bom , e Que vcs continue sempre a melhorar. ","createdat":""},{"id":"6142","unidade":"CER III TEA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu fiz e tive retorno rápido","P05":"Sempre quando sou atendida pela Dra Marcela ela é bem prestativa, sempre ajuda da melhor forma possível, para mim é uma excelente psiquiatra. Agradeço muito por ela poder cuidar da minha saúde mental. Estou bem com ela . ","createdat":"2026-03-19"},{"id":"6374","unidade":"UBS AGUA BRANCA","P01":"Ótimo","P02":"Ótimo","P03":"Bom","P04":"Eu nunca fiz","P05":"Ótimo ","createdat":"2026-03-19"},{"id":"6152","unidade":"CER III TEA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu fiz e tive retorno rápido","P05":"Profissional Ana, super competente, atenciosa. Ótima profissional","createdat":"2026-03-19"},{"id":"6154","unidade":"CER III TEA","P01":"Ótimo","P02":"Bom","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Equipe muito boa e acolh","createdat":"2026-03-19"},{"id":"6144","unidade":"CER III TEA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Bom atendimento ","createdat":"2026-03-19"},{"id":"6166","unidade":"CER III TEA","P01":"Ótimo","P02":"Ótimo","P03":"Bom","P04":"Eu nunca fiz","P05":"Um ótimo atendimento,tempo de espera bom.","createdat":"2026-03-19"},{"id":"6182","unidade":"CER III TEA","P01":"Regular","P02":"Ótimo","P03":"Péssimo","P04":"Eu fiz e nunca tive retorno","P05":"O profissional durante a consulta é bom, o problema é a agenda e cumprimento de horário.","createdat":"2026-03-19"},{"id":"6107","unidade":"CER III TEA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Tirando o grande período em que meu filho ficou na fila de espera (3anos), todo o atendimento da equipe do Espaço é MARAVILHOSO! Karina é uma excelente profissional.","createdat":""},{"id":"6217","unidade":"CER III TEA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Parabéns a Dra Vivian pelo cuidado com os pacientes.","createdat":"2026-03-19"},{"id":"6156","unidade":"CER III TEA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu fiz e tive retorno rápido","P05":"Trabalho realizado além do profissionalismo, estão de parabéns pela dedicação. ","createdat":"2026-03-19"},{"id":"6160","unidade":"CER III TEA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Agradeço o acolhimento e o atendimento prestado ao meu filho. ","createdat":"2026-03-19"},{"id":"6175","unidade":"CER III TEA","P01":"Bom","P02":"Bom","P03":"Bom","P04":"Eu nunca fiz","P05":"Muito bom bem paciente ","createdat":"2026-03-19"},{"id":"6212","unidade":"CER III TEA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Agradeço ao ótimo atendimento e serviço prestado por toda equipe parabéns que Deus abençoe sempre assim ","createdat":"2026-03-19"},{"id":"6016","unidade":"CER III TEA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Dr. Aldo é um profissional maravilhoso,mas Infelizmente ele disse que vai para área Adulta queria muito que ele permanecesse com o público infantil, ele é Muito Bom no que faz, como já disse, um Profissional Exemplar na sua área ","createdat":"2026-03-19"},{"id":"6167","unidade":"CER III TEA","P01":"Regular","P02":"Ótimo","P03":"Péssimo","P04":"Eu nunca fiz","P05":"A respeito dessa consulta em específico , foi reagendada por 3 vezes ,e ontem no dia da consulta médico não fez atendimento pela manhã estava marcado às 10:15 ,tivemos que ir embora e voltar no período da tarde às 13:30 ,fomos atendidos..","createdat":"2026-03-19"},{"id":"6187","unidade":"CER III TEA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Tudo ótimo ","createdat":"2026-03-19"},{"id":"6052","unidade":"CER III TEA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"A consulta foi perfeita em todos os aspectos, pontualidade, cordialidade, conhecimento técnico. MARAVILHOSA! Na verdade, até hoje todos os atendimentos no espaço saúde Carolina, CIAMA foram excelentes, fisioterapeuta, fono, nutri, psicóloga, enfermeiras, a Guiguita e agora a TO Camila, todas maravilhosas.","createdat":"2026-03-19"},{"id":"6064","unidade":"CER III TEA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Carolina ela uma excelente psicóloga! Minha filha evolui a cada consulta. Sou eternamente grata a ela!","createdat":"2026-03-19"},{"id":"6155","unidade":"CER III TEA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu fiz e tive retorno rápido","P05":"Sempre deixa bem claro os procedimentos adotados e as respostas do meu filho. Isso trás muita segurança e confiança. E as abordagem sempre é muito humanizada. Agradeço muito por isso.","createdat":"2026-03-19"},{"id":"7113","unidade":"CER III TEA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Profissional excelente ","createdat":"2026-03-30"},{"id":"7129","unidade":"CER III TEA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Excelente ","createdat":"2026-03-30"},{"id":"7287","unidade":"CER III TEA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu fiz e tive retorno rápido","P05":"Ótima profissional,anteciosa, prestativa uma excelente profissional ","createdat":"2026-03-30"},{"id":"7183","unidade":"CER III TEA","P01":"Ótimo","P02":"Ótimo","P03":"Bom","P04":"Eu nunca fiz","P05":"O proficional é ótimo e muito atencioso, parabéns 🙏","createdat":"2026-03-30"},{"id":"7242","unidade":"CER III TEA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Atendimento muito bom, ele é muito prestativo e explica tudo muito bem","createdat":"2026-03-30"},{"id":"7290","unidade":"CER III TEA","P01":"Ótimo","P02":"Bom","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Uma excelente profissional ","createdat":"2026-03-30"},{"id":"7246","unidade":"CER III TEA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu fiz e tive retorno rápido","P05":"Gosto do antendimento que Mateus Amaral faz ele bem presente nunca atrasou fala do antendimento ao meu filho sempre procura saber sobre a criança como anda,  faz um bom atendimento o Dominick é uma criança nível suporte 3 muita agitado e tendo crises o tempo todo.","createdat":""},{"id":"7117","unidade":"CER III TEA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"A profissional Carol é muito atenciosa, prestativa.","createdat":""},{"id":"7188","unidade":"CER III TEA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu fiz e tive retorno rápido","P05":"Doutor muito profissional e com muita energia boa ótimo as atendentes muito bom o problema é quando estou aí fico bem ao sair após algumas HS minhas dores continua só tenho agradecer ","createdat":"2026-03-30"},{"id":"7168","unidade":"CER III TEA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Uma excelente profissional,carinhosa,amorosa,sempre tira nossas duvidas como pais.","createdat":""},{"id":"7336","unidade":"CS III DE ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Ótimo atendimento","createdat":"2026-03-30"},{"id":"6241","unidade":"CS III DE ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Bom","P04":"Eu nunca fiz","P05":"Satisfeita com atendimento, os profissionais são bem atenciosos,alegres","createdat":"2026-03-19"},{"id":"6273","unidade":"CS III DE ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"A enfermeira é impecável boa em dar conselhos e tem uma conversa aberta , trata com educação e propriedade na sua função . ","createdat":"2026-03-19"},{"id":"6253","unidade":"CS III DE ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"tudo perfeito excelente","createdat":"2026-03-19"},{"id":"7320","unidade":"CS III DE ILHABELA","P01":"Regular","P02":"Regular","P03":"Regular","P04":"Eu nunca fiz","P05":"Sim, me surprendi positivanente con o envolvimenti da agente de saúdepara que eu pudesse ser atendida energencialmente no dia27/03 pela dra Priscila; essa consulta não teria acontecido sem o envolvimento da agente * Heloisa* que reconheceu prontamente a minha afliçãi por orientação na situação .","createdat":"2026-03-30"},{"id":"6288","unidade":"UBS AGUA BRANCA","P01":"Bom","P02":"Bom","P03":"Péssimo","P04":"Eu fiz e nunca tive retorno","P05":"Tenho inúmeras reclamações com o atendimento dessa unidade ","createdat":""},{"id":"6300","unidade":"UBS AGUA BRANCA","P01":"Bom","P02":"Bom","P03":"Bom","P04":"Eu nunca fiz","P05":"Gosto muito de ir à fono e ser atendido pela tia Yasmin que está cuidando de mim 💙","createdat":"2026-03-19"},{"id":"6321","unidade":"UBS AGUA BRANCA","P01":"Ótimo","P02":"Ótimo","P03":"Regular","P04":"Eu nunca fiz","P05":"Provavelmente estava havendo alguma reunião, por isso o atraso de uma hora no atendimento.","createdat":"2026-03-19"},{"id":"6351","unidade":"UBS AGUA BRANCA","P01":"Ótimo","P02":"Bom","P03":"Ótimo","P04":"Eu nunca fiz","P05":"A Dra Andréia!! Ela foi carinhosa e acolhedora com minha pequena Diana sara!!","createdat":""},{"id":"6345","unidade":"UBS AGUA BRANCA","P01":"Ruim","P02":"Ruim","P03":"Péssimo","P04":"Eu nunca fiz","P05":"Cheguei no posto da água branca 8:40 passei pela trilhagem 8:55 pediu pra eu aguardar e ninguém me chamava quando fui perguntar a funcionária  que horas eu iria ser atendida ja era 10:45  por final a doutora disse q as meninas comeu bola e  desmarcou","createdat":"2026-03-19"},{"id":"6284","unidade":"UBS AGUA BRANCA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Não tenho o que reclamar, sempre fui muito bem atendida. Muito bem acolhida, e todos os problemas resolvidos! ","createdat":"2026-03-19"},{"id":"6332","unidade":"UBS AGUA BRANCA","P01":"Ótimo","P02":"Bom","P03":"Ruim","P04":"Eu nunca fiz","P05":"Quanto ao atendimento achei ótimo,agora o horário estava agendado para as15:20 e só foi atendido uma hora depois achei muit falta de respeito,isso com uma criança de 2 anos imagina com adultos. ","createdat":"2026-03-19"},{"id":"6339","unidade":"UBS AGUA BRANCA","P01":"Ótimo","P02":"Bom","P03":"Bom","P04":"Eu nunca fiz","P05":"O atendimento tanto da enfermeira Kamila e Dr Daniel são excelentes estão de parabéns ","createdat":"2026-03-19"},{"id":"6275","unidade":"UBS AGUA BRANCA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Ótimo atendimento ","createdat":"2026-03-19"},{"id":"6314","unidade":"UBS AGUA BRANCA","P01":"Ótimo","P02":"Bom","P03":"Ótimo","P04":"Eu fiz e tive retorno rápido","P05":"Atendimento excelente ","createdat":"2026-03-19"},{"id":"6338","unidade":"UBS AGUA BRANCA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"A enfermeira Kamilla é muito atenciosa, dedicada no faz, realmente uma profissional que tem amor a profissão.","createdat":"2026-03-19"},{"id":"7399","unidade":"UBS AGUA BRANCA","P01":"Ótimo","P02":"Bom","P03":"Bom","P04":"Eu fiz e tive retorno rápido","P05":"Eles são as últimas pessoas sempre está rindo","createdat":"2026-03-30"},{"id":"7402","unidade":"UBS AGUA BRANCA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Eu elogio o Dr. Evandro pela dedicação, empatia,responsabilidade ao paciente.Todos os funcionários pelo atendimento e paciência. ","createdat":"2026-03-30"},{"id":"7388","unidade":"UBS AGUA BRANCA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu fiz e tive retorno rápido","P05":"Profissionais excelentes!! Anteciosos ","createdat":"2026-03-30"},{"id":"7455","unidade":"UBS AGUA BRANCA","P01":"Bom","P02":"Bom","P03":"Bom","P04":"Eu nunca fiz","P05":"Excelentes todos. ","createdat":""},{"id":"7444","unidade":"UBS AGUA BRANCA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Profissional atenciosa e dedicada","createdat":"2026-03-30"},{"id":"7389","unidade":"UBS AGUA BRANCA","P01":"Não sabe/Não opinou","P02":"Não sabe/Não opinou","P03":"Não sabe/Não opinou","P04":"Eu fiz e nunca tive retorno","P05":"Infelizmente nunca existiu essa consulta. ","createdat":""},{"id":"7379","unidade":"UBS AGUA BRANCA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Dr. Evandro é um profissional maravilhoso, atencioso e objetivo e toda equipe super exemplar sem mais 🙏","createdat":"2026-03-30"},{"id":"7339","unidade":"UBS AGUA BRANCA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Andrea a melhor enfermeira que conheço, atenciosa e ágil em tudo que o paciente precisa","createdat":"2026-03-30"},{"id":"6391","unidade":"UBS ALTO DA BARRA VELHA ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Uma excelente profissional ","createdat":""},{"id":"6407","unidade":"UBS ALTO DA BARRA VELHA ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Dr Leandro é um médico excepcional atende todos  com amor carinho e respeito ","createdat":"2026-03-19"},{"id":"6418","unidade":"UBS ALTO DA BARRA VELHA ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Bom","P04":"Eu fiz e tive retorno rápido","P05":"Ótimo atendimento ","createdat":"2026-03-19"},{"id":"6414","unidade":"UBS ALTO DA BARRA VELHA ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"A melhor enfermeira ","createdat":"2026-03-19"},{"id":"6409","unidade":"UBS ALTO DA BARRA VELHA ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Bom","P04":"Eu nunca fiz","P05":"A enfermeira leonela ótima enfermeira ","createdat":""},{"id":"7493","unidade":"UBS ALTO DA BARRA VELHA ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Q ele continue sempre assim exercendo a profissão com muito carinho amor atenção como se estivesse atendendo um familiar nota 10000000 muito satisfeita. ","createdat":"2026-03-30"},{"id":"7540","unidade":"UBS ALTO DA BARRA VELHA ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Só agradecer pela atenção obrigado ","createdat":"2026-03-30"},{"id":"7542","unidade":"UBS ALTO DA BARRA VELHA ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Regular","P04":"Eu nunca fiz","P05":"Profissional atende de acordo com a necessidade do paciente ","createdat":"2026-03-30"},{"id":"7557","unidade":"UBS ALTO DA BARRA VELHA ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Regular","P04":"Eu fiz e nunca tive retorno","P05":"Estou recentemente nessa UBS e já me deparei por 2 vezes sem médico sem atendimento, mais fui atendida na semana seguinte (ótimo q consegui) problema no qual o postinho de baixo barra velha nunca me deparei sempre fui atendida primeira mão acolhimento e precisando passando com profissional, estou a 2 meses na fila de espera odontológico pro meu filho de 4 anos e até agora nada ,espero que melhores todos esses detalhe dessa UBS alto da barra .","createdat":"2026-03-30"},{"id":"7537","unidade":"UBS ALTO DA BARRA VELHA ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu fiz e tive retorno rápido","P05":"Atendimento fora da curva, profissionais fora da curva . ","createdat":"2026-03-30"},{"id":"7506","unidade":"UBS ALTO DA BARRA VELHA ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Presta mas atenção quando faz a ficha pq as vezes as pessoas ficam horas esperando e acaba q nem a ficha fizeram pra chama pra pré consulta ","createdat":"2026-03-30"},{"id":"6452","unidade":"UBS BARRA VELHA ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Maravilhosa ","createdat":"2026-03-19"},{"id":"6446","unidade":"UBS BARRA VELHA ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu fiz e tive retorno rápido","P05":"Ótimo profissional,muito exigente para o bem das crianças,não é atoa que tem vários anos de carreira profissional.","createdat":"2026-03-19"},{"id":"6480","unidade":"UBS BARRA VELHA ILHABELA","P01":"Bom","P02":"Bom","P03":"Bom","P04":"Eu nunca fiz","P05":"Esteja sempre dando atenção hoje e sempre grato","createdat":"2026-03-19"},{"id":"6476","unidade":"UBS BARRA VELHA ILHABELA","P01":"Péssimo","P02":"Péssimo","P03":"Péssimo","P04":"Eu nunca fiz","P05":"A médica não atendeu remarcou para dia 19 de não atendeu e o Paulo deu recado que vai remarcar quando tiver agenda aberta","createdat":"2026-03-19"},{"id":"6509","unidade":"UBS BARRA VELHA ILHABELA","P01":"Péssimo","P02":"Péssimo","P03":"Péssimo","P04":"Eu fiz e nunca tive retorno","P05":"Péssimo acolhimento, péssima humanidade, funcionários claramente sem letramento e leitura. ","createdat":"2026-03-19"},{"id":"6510","unidade":"UBS BARRA VELHA ILHABELA","P01":"Bom","P02":"Bom","P03":"Bom","P04":"Eu nunca fiz","P05":"A profissional atendeu dentro do horário,as vezes o trabalho da recepção deixa a desejar,precisa melhorar.","createdat":"2026-03-19"},{"id":"6500","unidade":"UBS BARRA VELHA ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Bom","P04":"Eu nunca fiz","P05":"O atendimento foi ótimo fui muito bem ouvida e atendida.","createdat":""},{"id":"6531","unidade":"UBS BARRA VELHA ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Bom","P04":"Eu nunca fiz","P05":"Profissionais muito atenciosos e competentes, atendimento humanizado de excelência ","createdat":"2026-03-19"},{"id":"6489","unidade":"UBS BARRA VELHA ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Estão todos de parabéns! Equipe muito educada, atende todos com muito carinho!!","createdat":"2026-03-19"},{"id":"6518","unidade":"UBS BARRA VELHA ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Todos profissionais excelentes! Mas gostaria de deixar meu carinho pela Dra Martinha, humana, empática e com muita luz. ","createdat":""},{"id":"6529","unidade":"UBS BARRA VELHA ILHABELA","P01":"Ótimo","P02":"Bom","P03":"Bom","P04":"Eu nunca fiz","P05":"Deus abençoe vcs profissional sou sempre bem recebida ","createdat":"2026-03-19"},{"id":"6524","unidade":"UBS BARRA VELHA ILHABELA","P01":"Bom","P02":"Bom","P03":"Regular","P04":"Eu nunca fiz","P05":"A profissional passa muita tranquilidade e tem a mão muito leve , pois nem sentir a picada da agulha  ","createdat":"2026-03-19"},{"id":"6527","unidade":"UBS BARRA VELHA ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"A médica Martinha foi muito atenciosa ouviu todas as palavras do meu pai e dá minha mãe ! Muito simpática.Alem dos outros profissionais também foram muitos atenciosos! parabéns para todos da saúde.","createdat":"2026-03-19"},{"id":"6465","unidade":"UBS BARRA VELHA ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Ela é muito atenciosa ,esclarece dúvidas e me deixou muito confortável no entendimento mais íntimos . Ela é maravilhosa no que faz obg Analaura pelo carinho e cuidado que tem comigo ","createdat":"2026-03-19"},{"id":"6499","unidade":"UBS BARRA VELHA ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Eu, Priscila, mãe  da Bella, passei na UBS apenas para solicitar um carro para médico em São Paul9. Nao fui atendida pela Sama, e sim por uma de suas funcionárias, que foi maravilhosa. Então esta avaliação foi para ela e naonpara a Sama.","createdat":"2026-03-19"},{"id":"6505","unidade":"UBS BARRA VELHA ILHABELA","P01":"Bom","P02":"Bom","P03":"Bom","P04":"Eu nunca fiz","P05":"A única observação, é que quando fui agendar a consulta, eu precisava de encaminhamento para um especialista, já estou tentando a um bom tempo passar com algum especialista, mas nunca me encaminham. E na recepção me disseram que eu poderia agendar com a enfermeira que ela me encaminharia para o que fosse necessário, que com ela seria mais rápido, com a médica demoraria mais pra eu conseguir marcar uma consulta. Mas durante a consulta ela disse que apenas a médica da família pode encaminhar, então vou ter que marcar outra consulta pra tentar mais uma vez um encaminhamento.","createdat":""},{"id":"6448","unidade":"UBS BARRA VELHA ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Regular","P04":"Eu nunca fiz","P05":"O atendimento é bom embora  demorado,mas o sistema inibe solução imediata para o problema de saúde que muitas vezes é urgente, o algoritmo do sistema é falho!","createdat":"2026-03-19"},{"id":"7580","unidade":"UBS BARRA VELHA ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Bom","P04":"Eu nunca fiz","P05":"Acompanhei meu filho que passou com uma profissional  muito educada, paciente e segura.","createdat":"2026-03-30"},{"id":"7600","unidade":"UBS BARRA VELHA ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Primeira consulta com Doutor, e amei, me senti ouvida e cuidada . ","createdat":"2026-03-30"},{"id":"7603","unidade":"UBS BARRA VELHA ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Fui em uma emergência médica me atenderam prontamente super atencisos fizeram tudo quê podiam e chamaram carro e me levaram ao hospital muito bom equipe está de parabéns ","createdat":"2026-03-30"},{"id":"7610","unidade":"UBS BARRA VELHA ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Ótima profissional muito atenciosa e competente ","createdat":"2026-03-30"},{"id":"7628","unidade":"UBS BARRA VELHA ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu fiz e tive retorno rápido","P05":"Muito atencioso prestativo  boa conduta ","createdat":"2026-03-30"},{"id":"7627","unidade":"UBS BARRA VELHA ILHABELA","P01":"Ótimo","P02":"Bom","P03":"Bom","P04":"Eu nunca fiz","P05":"Todos são bem!","createdat":"2026-03-30"},{"id":"7606","unidade":"UBS BARRA VELHA ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Dr Gabriel médico maravilhoso ótimo profissional ","createdat":"2026-03-30"},{"id":"6554","unidade":"UBS COSTA NORTE ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Estou muito feliz morando na armação, é a melhor UBS de Ilhabela, atendimento atencioso, eficiente e rápido.","createdat":"2026-03-19"},{"id":"6552","unidade":"UBS COSTA NORTE ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Muito obrigado sempre pelo cuidado com.nos gratidão ","createdat":"2026-03-19"},{"id":"6560","unidade":"UBS COSTA NORTE ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu fiz e tive retorno rápido","P05":"Maravilhosa demais ","createdat":"2026-03-19"},{"id":"6969","unidade":"CENTRO DE ESPECIALIDADE DE ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu fiz e tive retorno rápido","P05":"Muito bom .","createdat":""},{"id":"6561","unidade":"UBS COSTA NORTE ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu fiz e tive retorno rápido","P05":"Excelente atendimento por todos os funcionários sempre!","createdat":"2026-03-19"},{"id":"6574","unidade":"UBS COSTA SUL I ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Quero agradecer o atendimento e pedir pra que as consultas no posto possam ser agendadas e não termos que ir e aguardar encaixes, nunca consigo marcar. e eu tenho rotinas que a marcação faz toda diferença. ","createdat":"2026-03-19"},{"id":"6572","unidade":"UBS COSTA SUL I ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu fiz e tive retorno rápido","P05":"Doutor Igor , enfermeira Maristela São maravilhosos, ótimos profissionais na unidade Costa sul. ","createdat":"2026-03-19"},{"id":"6586","unidade":"UBS COSTA SUL I ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu fiz e tive retorno rápido","P05":"Atendimento nota mil parabéns ","createdat":"2026-03-19"},{"id":"6582","unidade":"UBS COSTA SUL I ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Bom","P04":"Eu nunca fiz","P05":"Sou novo morador na ilha ,( 1 ano).","createdat":""},{"id":"6583","unidade":"UBS COSTA SUL I ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Que ele é um excelente médico ","createdat":"2026-03-19"},{"id":"6600","unidade":"UBS COSTA SUL I ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Bom","P04":"Eu nunca fiz","P05":"Sempre sou bem atendida por todos . Não há o que reclamar . ","createdat":"2026-03-19"},{"id":"6598","unidade":"UBS COSTA SUL I ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Equipe de trabalho muito boas São super bem educados","createdat":"2026-03-19"},{"id":"6603","unidade":"UBS COSTA SUL I ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"É uma excelente profissional, meu filho é PCD, ela acolhe com muito carinho, paciência e dedicação. Estamos muito satisfeitos com essa profissional ","createdat":"2026-03-19"},{"id":"6619","unidade":"UBS COSTA SUL I ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Um ótimo atendimento ","createdat":"2026-03-19"},{"id":"6618","unidade":"UBS COSTA SUL I ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Muito atencioso ","createdat":"2026-03-19"},{"id":"6644","unidade":"UBS COSTA SUL I ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Quero dizer que gosto muito do trabalho dela. Ela é muito atenciosa, sabe escutar e sempre me ajuda a ver as coisas com mais clareza. Obrigada 🤍","createdat":"2026-03-19"},{"id":"6575","unidade":"UBS COSTA SUL I ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Bom","P04":"Eu fiz e nunca tive retorno","P05":"Ontem dia 18/03 fui extremamente bem atendida pelo pessoal da medicação incluse uma senhora extremamente cuidadosa e atenciosa, meninas da limpeza... equipe nota mil . Agradecer o carinho cuidado e atendimento da equipe de ontem .","createdat":"2026-03-19"},{"id":"6585","unidade":"UBS COSTA SUL I ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Dr Igor é muito Atencioso educado e humano. ","createdat":""},{"id":"6638","unidade":"UBS COSTA SUL I ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"A Ilhabela merece esse atendimento de excelência que a Santa Cada tem prestado à população,que Deus ilumine o caminho dos responsáveis por esse trabalho,que pensem sempre como","createdat":""},{"id":"6625","unidade":"UBS COSTA SUL I ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Muito atenciosa","createdat":"2026-03-19"},{"id":"6581","unidade":"UBS COSTA SUL I ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Parabéns a toda equipe de profissionais .","createdat":"2026-03-19"},{"id":"7738","unidade":"UBS COSTA SUL I ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu fiz e tive retorno rápido","P05":"O doutor Igor é um excelente profissional  um médico ótimo ","createdat":"2026-03-30"},{"id":"7450","unidade":"UBS AGUA BRANCA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Muito bom! ","createdat":"2026-03-30"},{"id":"7740","unidade":"UBS COSTA SUL I ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"O atendimento do profissional foi excelente , obrigado","createdat":"2026-03-30"},{"id":"7754","unidade":"UBS COSTA SUL I ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Gostaria de deixar aqui meu elogio ao enfermeiro Leonardo , pois foi muito atencioso no atendimento prestado a minha pessoa ","createdat":"2026-03-30"},{"id":"7771","unidade":"UBS COSTA SUL I ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Bom","P04":"Eu nunca fiz","P05":"A profissional é atenciosa e gentil ","createdat":"2026-03-30"},{"id":"7768","unidade":"UBS COSTA SUL I ILHABELA","P01":"Ótimo","P02":"Bom","P03":"Ótimo","P04":"Eu fiz e tive retorno rápido","P05":"Por favor tente cada vez mais ser melhor o atendimento ","createdat":""},{"id":"7799","unidade":"UBS COSTA SUL I ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu fiz e nunca tive retorno","P05":"Parabenizo a equipe toda. Muito eficientes!","createdat":"2026-03-30"},{"id":"7790","unidade":"UBS COSTA SUL I ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Tenho passado por muitas questões difíceis em termos de saúde mental e emocional, e a psicóloga Paula da UBS Costa Sul sempre me acolheu e atendeu muito bem, com muita atenção e profissionalismo. Muito grata!","createdat":"2026-03-30"},{"id":"7812","unidade":"UBS COSTA SUL I ILHABELA","P01":"Não sabe/Não opinou","P02":"Não sabe/Não opinou","P03":"Péssimo","P04":"Eu nunca fiz","P05":"Não gostaria de falar da profissional porque minha filha nem chegou a ser atendida!  Gostaria de falar sobre a UBS Sul no geral pois o atendimento deixa a desejar! Esse ano eu fui ao posto aproximadamente 6 vezes e 5 delas eu voltei para casa! ","createdat":""},{"id":"7791","unidade":"UBS COSTA SUL I ILHABELA","P01":"Bom","P02":"Bom","P03":"Bom","P04":"Eu nunca fiz","P05":"A psicóloga desenvolve um.papel importante na questao de saúde mental. Deveria ter uma estrutura mais adequada de trabalho ao profissional. Sala adequada, equipamentos de trabalho, ambiente próprio para o atendimento. O UBS costa sul tem condições de oferecer essa estrutura e pelo que pude ver salas com infiltração, muito cheiro de mofo numa consulta de quase 1hr. ","createdat":"2026-03-30"},{"id":"7726","unidade":"UBS COSTA SUL I ILHABELA","P01":"Péssimo","P02":"Não sabe/Não opinou","P03":"Péssimo","P04":"Eu nunca fiz","P05":"O encaminhamento era para o médico da família Doutor Igor... Encaminhamento da nutricionista Júnia!! A consulta não ocorreu pois me recusei a consultar com o médico errado pois, o posto de saúde marcou o médico errado... ","createdat":"2026-03-30"},{"id":"7767","unidade":"UBS COSTA SUL I ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Atendimento excelente. Sinceramente, não lembro de ter sido tão bem atendida assim nem em médico particular. Ele se preocupou em saber todo meu histórico e tudo o que eu estava sentindo, para que nada ficasse sem atenção. Fiquei muito feliz e grata com o cuidado e profissionalismo prestado e ainda mais satisfeita saber que temos profissionais como ele.  ","createdat":"2026-03-30"},{"id":"6676","unidade":"UBS ITAQUANDUBA ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu fiz e tive retorno rápido","P05":"Ela é maravilhosa atende mto bem obg?","createdat":"2026-03-19"},{"id":"6680","unidade":"UBS ITAQUANDUBA ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Tudo ÓTIMO!!!","createdat":"2026-03-19"},{"id":"6677","unidade":"UBS ITAQUANDUBA ILHABELA","P01":"Bom","P02":"Regular","P03":"Bom","P04":"Eu nunca fiz","P05":"É uma ótima profissional. ","createdat":"2026-03-19"},{"id":"6707","unidade":"UBS ITAQUANDUBA ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Muito ótimo ","createdat":"2026-03-19"},{"id":"6718","unidade":"UBS ITAQUANDUBA ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Não tenho oque reclamar do dr Luan, sempre bem prestativo em todos os quesitos ","createdat":"2026-03-19"},{"id":"6705","unidade":"UBS ITAQUANDUBA ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu fiz e tive retorno rápido","P05":"Ela carinhosa ","createdat":""},{"id":"6730","unidade":"UBS ITAQUANDUBA ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Dra Natália e a enfermeira Evelyn são sempre muito empáticas. ","createdat":"2026-03-19"},{"id":"6761","unidade":"UBS ITAQUANDUBA ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Ótima profissional ","createdat":"2026-03-19"},{"id":"7690","unidade":"UBS BARRA VELHA ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Muito bom.","createdat":"2026-03-30"},{"id":"7714","unidade":"UBS COSTA NORTE ILHABELA","P01":"Bom","P02":"Bom","P03":"Bom","P04":"Eu fiz e tive retorno rápido","P05":"Ótimo ","createdat":"2026-03-30"},{"id":"6759","unidade":"UBS ITAQUANDUBA ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ruim","P04":"Eu nunca fiz","P05":"Uma profissional muito boa","createdat":"2026-03-19"},{"id":"6724","unidade":"UBS ITAQUANDUBA ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Profissional extremamente atencioso e competente. Durante o atendimento, transmite muita segurança e cuidado, explicando tudo de forma clara e detalhada, sem deixar dúvidas. Demonstra interesse genuíno pelo bem-estar do paciente, além de ter uma postura acolhedora e respeitosa. Sem dúvida, um excelente médico, que passa confiança e faz toda a diferença no acompanhamento.","createdat":"2026-03-19"},{"id":"6755","unidade":"UBS ITAQUANDUBA ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Bom","P04":"Eu nunca fiz","P05":"Meu atendimento Foi maravilhoso a enfermeira Samira tá de parabéns ","createdat":"2026-03-19"},{"id":"6717","unidade":"UBS ITAQUANDUBA ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu fiz e tive retorno rápido","P05":"Tudo muito bom","createdat":"2026-03-19"},{"id":"6736","unidade":"UBS ITAQUANDUBA ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Bom","P04":"Eu nunca fiz","P05":"Profissional atencioso e ágil no atendimento. Conseguiu sanar as nossas dúvidas e orientou de forma clara para solução do problema.","createdat":"2026-03-19"},{"id":"6668","unidade":"UBS ITAQUANDUBA ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"O atendimento de todos os profissionais são excelentes,  eles estão de parabéns. ","createdat":"2026-03-19"},{"id":"6701","unidade":"UBS ITAQUANDUBA ILHABELA","P01":"Bom","P02":"Ótimo","P03":"Ótimo","P04":"Eu fiz e nunca tive retorno","P05":"Parabenizar toda equipe. Desde agente de saúde, ","createdat":"2026-03-19"},{"id":"6678","unidade":"UBS ITAQUANDUBA ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu fiz e tive retorno rápido","P05":"Fiquei muito satisfeito om o atendimento ","createdat":"2026-03-19"},{"id":"7822","unidade":"UBS ITAQUANDUBA ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu fiz e tive retorno rápido","P05":"Muito satisfeitas. O pessoal é nota 10","createdat":"2026-03-30"},{"id":"7823","unidade":"UBS ITAQUANDUBA ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"O posto do Itaguaçu ao tem o dizer e posto que merece elogio.. só gratidão.","createdat":"2026-03-30"},{"id":"7836","unidade":"UBS ITAQUANDUBA ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"O Dr. foi muito prestativo, ouviu com atenção minhas queixas. Me orientou e remarcou um retorno.","createdat":""},{"id":"7879","unidade":"UBS ITAQUANDUBA ILHABELA","P01":"Bom","P02":"Bom","P03":"Bom","P04":"Eu nunca fiz","P05":"O tempo de espera foi muito rápido. Desde quando passou no médico e foi marcadado. ","createdat":"2026-03-30"},{"id":"7886","unidade":"UBS ITAQUANDUBA ILHABELA","P01":"Ótimo","P02":"Bom","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Atendimento perfeito, a melhor médica q eu possa conhecer na ubs ","createdat":"2026-03-30"},{"id":"7884","unidade":"UBS ITAQUANDUBA ILHABELA","P01":"Ótimo","P02":"Bom","P03":"Ótimo","P04":"Eu nunca fiz","P05":"O espaço é limpo , agradável e todas as vezes que fui as atendentes e as enfermeiras muito profissionais e gentis ","createdat":"2026-03-30"},{"id":"7871","unidade":"UBS ITAQUANDUBA ILHABELA","P01":"Ótimo","P02":"Bom","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Muito bom ","createdat":"2026-03-30"},{"id":"6765","unidade":"UBS PEREQUE ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Todos mto atenciosos desde a recepção até os profissionais que me atendem ","createdat":"2026-03-19"},{"id":"6783","unidade":"UBS PEREQUE ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Regular","P04":"Eu fiz e tive retorno rápido","P05":"Profissional excelente e muito atenciosa !","createdat":"2026-03-19"},{"id":"6782","unidade":"UBS PEREQUE ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Bom","P04":"Eu nunca fiz","P05":"São atenciosos da recepção ao profissional. Muito boa essa equipe do UBS Perequê.","createdat":"2026-03-19"},{"id":"6789","unidade":"UBS PEREQUE ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Atendente rápido profissional excelente ","createdat":"2026-03-19"},{"id":"6824","unidade":"UBS PEREQUE ILHABELA","P01":"Bom","P02":"Bom","P03":"Regular","P04":"Eu fiz e nunca tive retorno","P05":"Pediatra atendimento impecável e pontual","createdat":"2026-03-19"},{"id":"6816","unidade":"UBS PEREQUE ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Equipe atenciosa. ","createdat":"2026-03-19"},{"id":"6827","unidade":"UBS PEREQUE ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu fiz e tive retorno rápido","P05":"Sempre muito atencioso e paciente. Nos pergunta se temos dúvida no desenvolvimento ","createdat":"2026-03-19"},{"id":"6826","unidade":"UBS PEREQUE ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu fiz e nunca tive retorno","P05":"Só tenho agradecer, o profissional e o atendimento recebido..profissional nota mil","createdat":"2026-03-19"},{"id":"6806","unidade":"UBS PEREQUE ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Agradeço o bom atendimento a educação e o carinho que a equipe do pereque atende ","createdat":"2026-03-19"},{"id":"6786","unidade":"UBS PEREQUE ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"A profissional Gisele e uma excelente, ela examina, tira todas as suas dúvidas, te acolhe no momento do desespero usa as palavras certas, encaminha os exames necessários.","createdat":""},{"id":"6832","unidade":"UBS PEREQUE ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu fiz e tive retorno rápido","P05":"Todas as profissionais sao atenciosas e prestativa. ","createdat":"2026-03-19"},{"id":"6857","unidade":"UBS PEREQUE ILHABELA","P01":"Bom","P02":"Bom","P03":"Bom","P04":"Eu fiz e tive retorno demorado","P05":"Muito bom o serviço ","createdat":"2026-03-19"},{"id":"6813","unidade":"UBS PEREQUE ILHABELA","P01":"Bom","P02":"Bom","P03":"Bom","P04":"Eu nunca fiz","P05":"Agradecimento  aos funcionários: recepção, agente de saúde, auxiliares e a médica da família. Sempre atendido quando procurei a unidade de saúde. ","createdat":"2026-03-19"},{"id":"6844","unidade":"UBS PEREQUE ILHABELA","P01":"Bom","P02":"Bom","P03":"Bom","P04":"Eu fiz e nunca tive retorno","P05":"A dra Pérola e nova na unidade. E a minha primeira consulta com ela, portanto a avaliação será somente do dia.","createdat":""},{"id":"7905","unidade":"UBS PEREQUE ILHABELA","P01":"Bom","P02":"Bom","P03":"Ótimo","P04":"Eu fiz e tive retorno rápido","P05":"A unidade de saúde do Pereque é excelente.","createdat":""},{"id":"7906","unidade":"UBS PEREQUE ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Ótimo atendimento na UBS do Perequê!","createdat":"2026-03-30"},{"id":"7936","unidade":"UBS PEREQUE ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Bom","P04":"Eu fiz e tive retorno rápido","P05":"Muito profissional estão de parabéns da recepção ao faxina","createdat":"2026-03-30"},{"id":"7922","unidade":"UBS PEREQUE ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Atendimento Excelente ","createdat":"2026-03-30"},{"id":"7935","unidade":"UBS PEREQUE ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu fiz e tive retorno rápido","P05":"Muito bom principalmente o horário .","createdat":"2026-03-30"},{"id":"7978","unidade":"UBS PEREQUE ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu fiz e tive retorno rápido","P05":"Nota 1000","createdat":"2026-03-30"},{"id":"7964","unidade":"UBS PEREQUE ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ruim","P04":"Eu fiz e tive retorno demorado","P05":"Não trocar tanto de doctora a gente fica sen saber que fazer ","createdat":"2026-03-30"},{"id":"7966","unidade":"UBS PEREQUE ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Dra Pérola é muito atenciosa e carinhosa. Adorei o atendimento da minha filha!","createdat":"2026-03-30"},{"id":"7967","unidade":"UBS PEREQUE ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"O atendimento é impecável mas gostaria de saber porque em todo lugar idosos com mais de oitenta anos são atendidos com preferência até mesmo no Mário Covas mas não nas UBS","createdat":"2026-03-30"},{"id":"7921","unidade":"UBS PEREQUE ILHABELA","P01":"Ótimo","P02":"Ótimo","P03":"Bom","P04":"Eu nunca fiz","P05":"So agradecer aos profissionais ","createdat":"2026-03-30"},{"id":"7976","unidade":"UBS PEREQUE ILHABELA","P01":"Ótimo","P02":"Bom","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Ótimo atendimento, com uma postura profissional adequada e um tratamento humilde no modo de conversar, mesmo apresentando um pouco de dúvidas por ser uma pessoa nova mas está de parabéns.","createdat":"2026-03-30"},{"id":"7415","unidade":"UBS AGUA BRANCA","P01":"Ótimo","P02":"Ótimo","P03":"Ótimo","P04":"Eu nunca fiz","P05":"Nao","createdat":"2026-03-30"}];
+
+const SCORE_MAP = {'Ótimo':5,'Bom':4,'Regular':3,'Ruim':2,'Péssimo':1,'Não sabe/Não opinou':null};
+const LABELS_ORDER = ['Ótimo','Bom','Regular','Ruim','Péssimo'];
+const COLORS = {
+  'Ótimo':'#10b981','Bom':'#3b82f6','Regular':'#f59e0b','Ruim':'#f97316','Péssimo':'#ef4444','Não sabe/Não opinou':'#6b7280'
+};
+
+const WORD_FREQ = [
+  ['profissional',179],['atendimento',179],['excelente',93],['sempre',67],['atenciosa',57],
+  ['profissionais',56],['parabéns',53],['ótimo',52],['tenho',42],['atendida',35],
+  ['agradecer',34],['atencioso',31],['equipe',30],['saúde',30],['consulta',27],
+  ['tudo',26],['filho',26],['médico',26],['super',25],['paciente',25],
+  ['atenção',24],['recepção',24],['maravilhosa',22],['melhor',21],['carinho',17],
+  ['enfermeira',16],['gratidão',16],['obrigada',16],['prestativo',15],['cuidado',15]
+];
+
+// ══════════════════════════════════════════════
+// MODO DE DADOS: 'local' (xlsx embutido) ou 'api' (PostgreSQL via FastAPI)
+// Para ativar a API: mude para 'api' e configure API_BASE_URL
+// ══════════════════════════════════════════════
+const DATA_MODE    = 'local';                        // 'local' | 'api'
+const API_BASE_URL = 'http://localhost:8000';        // URL da sua FastAPI
+
+// ─── STATE ───
+let filterUnit      = '';
+let filterAvaliacao = '';
+let filterP04       = '';
+let filterDateFrom  = '';
+let filterDateTo    = '';
+let charts          = {};
+let LIVE_DATA       = [...RAW_DATA]; // começa com dados locais; substituído pela API
+
+// ─── INIT ───
+window.addEventListener('DOMContentLoaded', async () => {
+  populateFilters();
+  if (DATA_MODE === 'api') {
+    await loadFromAPI();
+  } else {
+    // Adiciona createdat ao estado de filtro de data local
+    filterDateFrom = document.getElementById('filterDateFrom').value;
+    filterDateTo   = document.getElementById('filterDateTo').value;
+    renderAll();
+  }
+});
+
+// ─── CARREGAR DA API ───
+async function loadFromAPI() {
+  showLoading(true);
+  try {
+    const params = new URLSearchParams();
+    if (filterDateFrom) params.set('data_de',   filterDateFrom);
+    if (filterDateTo)   params.set('data_ate',  filterDateTo);
+    if (filterUnit)     params.set('unidade',   filterUnit);
+    if (filterAvaliacao) params.set('avaliacao', filterAvaliacao);
+    if (filterP04)      params.set('p04',        filterP04);
+
+    const res  = await fetch(`${API_BASE_URL}/pesquisa?${params}&limit=5000`);
+    const json = await res.json();
+    LIVE_DATA  = json.data;
+
+    // Atualiza período no header
+    const datas = LIVE_DATA.map(d => d.createdat).filter(Boolean).sort();
+    if (datas.length) {
+      document.getElementById('period-text').textContent =
+        `${datas[0]} → ${datas[datas.length-1]} · ${LIVE_DATA.length} registros`;
+    }
+
+    renderAll();
+  } catch (err) {
+    console.error('Erro na API:', err);
+    document.getElementById('filter-count').textContent = '⚠️ Erro ao carregar da API — usando dados locais';
+    LIVE_DATA = [...RAW_DATA];
+    renderAll();
+  } finally {
+    showLoading(false);
+  }
+}
+
+function showLoading(on) {
+  let el = document.getElementById('loading-overlay');
+  if (!el) {
+    el = document.createElement('div');
+    el.id = 'loading-overlay';
+    el.style.cssText = `position:fixed;inset:0;background:#0a0f1ecc;z-index:9999;
+      display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;
+      font-size:18px;color:#00d4ff;gap:12px;backdrop-filter:blur(4px);`;
+    el.innerHTML = `<span style="animation:spin 1s linear infinite;display:inline-block">⟳</span> Carregando dados...`;
+    document.body.appendChild(el);
+  }
+  el.style.display = on ? 'flex' : 'none';
+}
+
+// ─── FILTROS ───
+function populateFilters() {
+  const sel   = document.getElementById('filterUnit');
+  const units = [...new Set(RAW_DATA.map(d => d.unidade))].sort();
+  units.forEach(u => {
+    const opt = document.createElement('option');
+    opt.value = u; opt.textContent = u;
+    sel.appendChild(opt);
+  });
+
+  document.getElementById('filterUnit').addEventListener('change', e => {
+    filterUnit = e.target.value; triggerFilter();
+  });
+  document.getElementById('filterAvaliacao').addEventListener('change', e => {
+    filterAvaliacao = e.target.value; triggerFilter();
+  });
+  document.getElementById('filterP04').addEventListener('change', e => {
+    filterP04 = e.target.value; triggerFilter();
+  });
+  document.getElementById('filterDateFrom').addEventListener('change', e => {
+    filterDateFrom = e.target.value; triggerFilter();
+  });
+  document.getElementById('filterDateTo').addEventListener('change', e => {
+    filterDateTo = e.target.value; triggerFilter();
+  });
+  document.getElementById('comment-search').addEventListener('input', renderComments);
+
+  // Inicializa com datas dos inputs
+  filterDateFrom = document.getElementById('filterDateFrom').value;
+  filterDateTo   = document.getElementById('filterDateTo').value;
+}
+
+function triggerFilter() {
+  if (DATA_MODE === 'api') {
+    loadFromAPI(); // busca novamente da API com os novos filtros
+  } else {
+    renderAll();   // filtra localmente
+  }
+}
+
+// ─── ATALHOS DE DATA ───
+function setDatePreset(preset) {
+  const btns = ['jan','fev','mar','all'];
+  btns.forEach(b => {
+    const el = document.getElementById('btn-' + b);
+    if (el) el.style.borderColor = b === preset ? 'var(--accent)' : '';
+  });
+
+  const presets = {
+    'jan': ['2026-01-01', '2026-01-31'],
+    'fev': ['2026-02-01', '2026-02-28'],
+    'mar': ['2026-03-01', '2026-03-31'],
+    'all': ['2026-01-01', '2026-12-31'],
+  };
+  const [de, ate] = presets[preset] || ['2026-01-01', '2026-12-31'];
+  document.getElementById('filterDateFrom').value = de;
+  document.getElementById('filterDateTo').value   = ate;
+  filterDateFrom = de;
+  filterDateTo   = ate;
+  triggerFilter();
+}
+
+function getFiltered() {
+  return LIVE_DATA.filter(d => {
+    if (filterUnit      && d.unidade !== filterUnit)                                            return false;
+    if (filterAvaliacao && d.P01 !== filterAvaliacao && d.P02 !== filterAvaliacao && d.P03 !== filterAvaliacao) return false;
+    if (filterP04       && d.P04 !== filterP04)                                                return false;
+    if (filterDateFrom  && d.createdat && d.createdat < filterDateFrom)                        return false;
+    if (filterDateTo    && d.createdat && d.createdat > filterDateTo)                          return false;
+    return true;
+  });
+}
+
+function resetFilters() {
+  filterUnit = ''; filterAvaliacao = ''; filterP04 = '';
+  filterDateFrom = '2026-01-01'; filterDateTo = '2026-12-31';
+  document.getElementById('filterUnit').value      = '';
+  document.getElementById('filterAvaliacao').value = '';
+  document.getElementById('filterP04').value       = '';
+  document.getElementById('filterDateFrom').value  = '2026-01-01';
+  document.getElementById('filterDateTo').value    = '2026-12-31';
+  ['jan','fev','mar','all'].forEach(b => {
+    const el = document.getElementById('btn-' + b);
+    if (el) el.style.borderColor = '';
+  });
+  triggerFilter();
+}
+
+function scoreOf(v) { return SCORE_MAP[v] ?? null; }
+
+function renderAll() {
+  const data = getFiltered();
+
+  // Atualiza período no header com os dados filtrados
+  const datas = data.map(d => d.createdat).filter(Boolean).sort();
+  if (datas.length) {
+    document.getElementById('period-text').textContent =
+      `${datas[0]} → ${datas[datas.length-1]} · ${data.length} registros`;
+  }
+
+  document.getElementById('filter-count').textContent =
+    `${data.length} registro${data.length !== 1 ? 's' : ''} filtrado${data.length !== 1 ? 's' : ''}`;
+
+  renderKPIs(data);
+  renderQDist(data, 'P01', 'chartP01Dist', '#00d4ff');
+  renderQUnit(data, 'P01', 'chartP01Unit');
+  renderQDist(data, 'P02', 'chartP02Dist', '#a78bfa');
+  renderQUnit(data, 'P02', 'chartP02Unit');
+  renderQDist(data, 'P03', 'chartP03Dist', '#34d399');
+  renderQUnit(data, 'P03', 'chartP03Unit');
+  renderDimensoes(data);
+  renderRadar(data);
+  renderHeatmap(data);
+  renderRanking(data);
+  renderP04(data);
+  renderVolume(data);
+  renderWordCloud(data);
+  renderComments(data);
+}
+
+
+// ─── KPIs ───
+function renderKPIs(data) {
+  const total = data.length;
+  const otimoCount = data.filter(d => d.P01 === 'Ótimo').length;
+  const pct = total ? Math.round(otimoCount / total * 100) : 0;
+  const scores = data.flatMap(d => [scoreOf(d.P01), scoreOf(d.P02), scoreOf(d.P03)]).filter(x => x !== null);
+  const avg = scores.length ? (scores.reduce((a,b) => a+b,0) / scores.length).toFixed(2) : '—';
+  const negCount = data.filter(d => ['Ruim','Péssimo'].includes(d.P01) || ['Ruim','Péssimo'].includes(d.P02) || ['Ruim','Péssimo'].includes(d.P03)).length;
+  const units = new Set(data.map(d => d.unidade)).size;
+
+  document.getElementById('kpi-total').textContent = total;
+  document.getElementById('kpi-otimo').textContent = pct + '%';
+  document.getElementById('kpi-score').textContent = avg;
+  document.getElementById('kpi-neg').textContent = negCount;
+  document.getElementById('kpi-units').textContent = units;
+}
+
+// ─── RANKING ───
+function renderRanking(data) {
+  const unitMap = {};
+  data.forEach(d => {
+    if (!unitMap[d.unidade]) unitMap[d.unidade] = {scores:[], count:0};
+    [scoreOf(d.P01), scoreOf(d.P02), scoreOf(d.P03)].forEach(s => { if(s) unitMap[d.unidade].scores.push(s); });
+    unitMap[d.unidade].count++;
+  });
+  const ranked = Object.entries(unitMap)
+    .map(([u,v]) => ({u, avg: v.scores.reduce((a,b)=>a+b,0)/v.scores.length, count: v.count}))
+    .sort((a,b) => b.avg - a.avg);
+
+  const tb = document.getElementById('ranking-table');
+  tb.innerHTML = `<tr><th>#</th><th>Unidade</th><th>Respostas</th><th style="min-width:180px">Nota média</th></tr>`;
+  ranked.forEach((r, i) => {
+    const cls = i===0?'rank-1':i===1?'rank-2':i===2?'rank-3':'';
+    const barW = Math.round((r.avg/5)*100);
+    const shortName = r.u.replace('ILHABELA','').replace('DE ','').replace('III','III').trim();
+    tb.innerHTML += `<tr>
+      <td><span class="rank-num ${cls}">${i+1}</span></td>
+      <td style="font-size:12px;max-width:180px">${shortName}</td>
+      <td><span class="tag-count">${r.count}</span></td>
+      <td>
+        <div class="score-bar-wrap">
+          <div class="score-bar-bg"><div class="score-bar-fill" style="width:${barW}%"></div></div>
+          <span class="score-num">${r.avg.toFixed(2)}</span>
+        </div>
+      </td>
+    </tr>`;
+  });
+}
+
+// ─── P04 DONUT ───
+function renderP04(data) {
+  const counts = {};
+  data.forEach(d => { counts[d.P04] = (counts[d.P04]||0)+1; });
+  const labels = Object.keys(counts);
+  const vals = labels.map(l => counts[l]);
+  const clrs = ['#6b7280','#10b981','#ef4444','#f59e0b'];
+  const shortLabels = labels.map(l => l.replace('Eu ','').replace('fiz e ',''));
+
+  if(charts.p04) charts.p04.destroy();
+  charts.p04 = new Chart(document.getElementById('chartP04'), {
+    type: 'doughnut',
+    data: { labels: shortLabels, datasets: [{ data: vals, backgroundColor: clrs, borderColor: '#111827', borderWidth: 3, hoverOffset: 8 }] },
+    options: {
+      responsive: true, cutout: '65%',
+      plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => ` ${ctx.label}: ${ctx.raw} (${Math.round(ctx.raw/data.length*100)}%)` } } }
+    }
+  });
+
+  const legend = document.getElementById('p04-legend');
+  legend.innerHTML = labels.map((l,i) => `
+    <div class="legend-item">
+      <div class="legend-dot" style="background:${clrs[i]}"></div>
+      <span>${shortLabels[i]}</span>
+      <span style="margin-left:auto;font-weight:600;color:${clrs[i]}">${vals[i]}</span>
+    </div>
+  `).join('');
+}
+
+// ─── HELPER: single question donut ───
+function renderQDist(data, q, canvasId, color) {
+  const counts = {};
+  LABELS_ORDER.forEach(l => counts[l] = 0);
+  data.forEach(d => { if (LABELS_ORDER.includes(d[q])) counts[d[q]]++; });
+  const total = Object.values(counts).reduce((a,b)=>a+b,0);
+  const vals = LABELS_ORDER.map(l => counts[l]);
+  const clrs = LABELS_ORDER.map(l => COLORS[l]);
+
+  if(charts[canvasId]) charts[canvasId].destroy();
+  charts[canvasId] = new Chart(document.getElementById(canvasId), {
+    type: 'doughnut',
+    data: { labels: LABELS_ORDER, datasets: [{ data: vals, backgroundColor: clrs, borderColor: '#111827', borderWidth: 3, hoverOffset: 10 }] },
+    options: {
+      responsive: true, cutout: '60%',
+      plugins: {
+        legend: { position: 'right', labels: { color: '#94a3b8', padding: 14, font: { size: 12 },
+          generateLabels: chart => {
+            const d = chart.data;
+            return d.labels.map((lbl, i) => ({
+              text: `${lbl}  ${d.datasets[0].data[i]}`,
+              fillStyle: d.datasets[0].backgroundColor[i],
+              strokeStyle: 'transparent', lineWidth: 0, hidden: false, index: i
+            }));
+          }
+        }},
+        tooltip: { callbacks: { label: ctx => ` ${ctx.label}: ${ctx.raw} (${total ? Math.round(ctx.raw/total*100) : 0}%)` } }
+      }
+    }
+  });
+}
+
+// ─── HELPER: per-question stacked by unit ───
+function renderQUnit(data, q, canvasId) {
+  const unitMap = {};
+  data.forEach(d => {
+    if (!unitMap[d.unidade]) unitMap[d.unidade] = {};
+    unitMap[d.unidade][d[q]] = (unitMap[d.unidade][d[q]]||0)+1;
+  });
+  const unitKeys = Object.keys(unitMap);
+  const labels = unitKeys.map(u => u.replace(' ILHABELA','').replace('CENTRO DE ','').replace('UBS ','UBS '));
+  const datasets = LABELS_ORDER.map(l => ({
+    label: l, data: unitKeys.map(u => unitMap[u][l]||0),
+    backgroundColor: COLORS[l], borderRadius: 3
+  }));
+  if(charts[canvasId]) charts[canvasId].destroy();
+  charts[canvasId] = new Chart(document.getElementById(canvasId), {
+    type: 'bar',
+    data: { labels, datasets },
+    options: {
+      responsive: true, indexAxis: 'y',
+      plugins: { legend: { position: 'bottom', labels: { color: '#94a3b8', padding: 10, font: { size: 11 } } } },
+      scales: {
+        x: { stacked: true, grid: { color: '#1e2d45' }, ticks: { color: '#64748b' } },
+        y: { stacked: true, grid: { display: false }, ticks: { color: '#94a3b8', font: { size: 10 } } }
+      }
+    }
+  });
+}
+
+// ─── DIMENSOES CONSOLIDADO ───
+function renderDimensoes(data) {
+  const perQ = ['P01','P02','P03'].map(q => {
+    const r = {};
+    LABELS_ORDER.forEach(l => r[l] = 0);
+    data.forEach(d => { if(LABELS_ORDER.includes(d[q])) r[d[q]]++; });
+    return r;
+  });
+  const datasets = LABELS_ORDER.map(l => ({
+    label: l, data: perQ.map(q => q[l]),
+    backgroundColor: COLORS[l], borderRadius: 4
+  }));
+  if(charts.dim) charts.dim.destroy();
+  charts.dim = new Chart(document.getElementById('chartDimensoes'), {
+    type: 'bar',
+    data: { labels: ['P01 — Atendimento prestado pelo profissional','P02 — Orientação sobre queixas e dúvidas','P03 — Pontualidade / Horário agendado'], datasets },
+    options: {
+      responsive: true, indexAxis: 'y',
+      plugins: { legend: { position: 'bottom', labels: { color: '#94a3b8', padding: 16, font: { size: 12 } } } },
+      scales: {
+        x: { stacked: true, grid: { color: '#1e2d45' }, ticks: { color: '#64748b' } },
+        y: { stacked: true, grid: { display: false }, ticks: { color: '#94a3b8', font: { size: 12 } } }
+      }
+    }
+  });
+}
+
+// ─── HEATMAP ───
+function getColor(v) {
+  if (!v) return { bg: '#1a2235', text: '#64748b' };
+  if (v >= 4.8) return { bg: 'rgba(16,185,129,0.2)', text: '#10b981' };
+  if (v >= 4.5) return { bg: 'rgba(16,185,129,0.1)', text: '#34d399' };
+  if (v >= 4.0) return { bg: 'rgba(59,130,246,0.15)', text: '#60a5fa' };
+  if (v >= 3.5) return { bg: 'rgba(245,158,11,0.15)', text: '#fbbf24' };
+  return { bg: 'rgba(239,68,68,0.15)', text: '#f87171' };
+}
+
+function renderHeatmap(data) {
+  const unitMap = {};
+  data.forEach(d => {
+    if (!unitMap[d.unidade]) unitMap[d.unidade] = {P01:[],P02:[],P03:[]};
+    ['P01','P02','P03'].forEach(q => { const s = scoreOf(d[q]); if(s) unitMap[d.unidade][q].push(s); });
+  });
+
+  const tb = document.getElementById('heatmap-table');
+  tb.innerHTML = `<tr><th>Unidade</th><th>P01 — Atendimento</th><th>P02 — Orientação</th><th>P03 — Pontualidade</th></tr>`;
+  Object.entries(unitMap).forEach(([u, v]) => {
+    const cells = ['P01','P02','P03'].map(q => {
+      const arr = v[q];
+      if (!arr.length) return `<td>—</td>`;
+      const avg = arr.reduce((a,b)=>a+b,0)/arr.length;
+      const {bg, text} = getColor(avg);
+      return `<td><span class="heatmap-cell" style="background:${bg};color:${text}">${avg.toFixed(1)}</span></td>`;
+    });
+    const short = u.replace('ILHABELA','').replace('DE ','').trim().substring(0,28);
+    tb.innerHTML += `<tr><td style="font-size:11px;color:#94a3b8">${short}</td>${cells.join('')}</tr>`;
+  });
+}
+
+// ─── VOLUME ───
+function renderVolume(data) {
+  const counts = {};
+  data.forEach(d => counts[d.unidade] = (counts[d.unidade]||0)+1);
+  const sorted = Object.entries(counts).sort((a,b) => b[1]-a[1]);
+  const labels = sorted.map(([u]) => u.replace(' ILHABELA','').replace('CENTRO DE ','').replace('UBS ','UBS '));
+
+  if(charts.vol) charts.vol.destroy();
+  charts.vol = new Chart(document.getElementById('chartVolume'), {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [{ data: sorted.map(([,v])=>v), backgroundColor: '#00d4ff33', borderColor: '#00d4ff', borderWidth: 1.5, borderRadius: 6 }]
+    },
+    options: {
+      responsive: true, indexAxis: 'y',
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { grid: { color: '#1e2d45' }, ticks: { color: '#64748b' } },
+        y: { grid: { display: false }, ticks: { color: '#94a3b8', font: { size: 10 } } }
+      }
+    }
+  });
+}
+
+// ─── RADAR ───
+function renderRadar(data) {
+  const unitCount = {};
+  data.forEach(d => unitCount[d.unidade] = (unitCount[d.unidade]||0)+1);
+  const top6 = Object.entries(unitCount).sort((a,b)=>b[1]-a[1]).slice(0,6).map(([u])=>u);
+
+  const paleta = ['#00d4ff','#10b981','#7c3aed','#f59e0b','#ef4444','#ec4899'];
+  const datasets = top6.map((u, i) => {
+    const rows = data.filter(d => d.unidade === u);
+    const avg = q => { const s = rows.map(d => scoreOf(d[q])).filter(Boolean); return s.length ? s.reduce((a,b)=>a+b,0)/s.length : 0; };
+    return {
+      label: u.replace(' ILHABELA','').replace('CENTRO DE ','').replace('UBS ',''),
+      data: [avg('P01'), avg('P02'), avg('P03')],
+      backgroundColor: paleta[i] + '22',
+      borderColor: paleta[i],
+      pointBackgroundColor: paleta[i],
+      borderWidth: 2, pointRadius: 4
+    };
+  });
+
+  if(charts.radar) charts.radar.destroy();
+  charts.radar = new Chart(document.getElementById('chartRadar'), {
+    type: 'radar',
+    data: { labels: ['P01 — Atendimento prestado','P02 — Orientação (queixas/dúvidas)','P03 — Pontualidade (horário)'], datasets },
+    options: {
+      responsive: true,
+      plugins: { legend: { position: 'bottom', labels: { color: '#94a3b8', padding: 10, font: { size: 10 } } } },
+      scales: {
+        r: {
+          min: 3, max: 5,
+          grid: { color: '#1e2d45' },
+          angleLines: { color: '#1e2d45' },
+          ticks: { color: '#64748b', backdropColor: 'transparent', stepSize: 0.5 },
+          pointLabels: { color: '#94a3b8', font: { size: 11 } }
+        }
+      }
+    }
+  });
+}
+
+// ─── WORD CLOUD ───
+function renderWordCloud(data) {
+  // Recalcula frequência com os dados filtrados
+  const stopwords = new Set(['o','a','e','de','do','da','dos','das','com','em','que','para','por',
+    'um','uma','muito','os','as','se','ao','na','no','são','foi','mais','mas','me','ou','também',
+    'pelo','pela','meu','sua','seu','não','é','ser','isso','ter','bem','todo','todos','boa','bom',
+    'minha','nos','ele','ela','eles','elas','eu','já','só','quando','como','há','nan','tive','fui',
+    'sempre','tenho','esse','essa','este','esta','seus','cada','mais']);
+  const freq = {};
+  (data || LIVE_DATA).forEach(d => {
+    const txt = d.P05 || '';
+    if (!txt || txt === 'nan') return;
+    txt.toLowerCase().match(/\b[a-záéíóúâêîôûãõç]{4,}\b/g)?.forEach(w => {
+      if (!stopwords.has(w)) freq[w] = (freq[w]||0)+1;
+    });
+  });
+  const sorted = Object.entries(freq).sort((a,b) => b[1]-a[1]).slice(0, 30);
+  if (!sorted.length) { document.getElementById('word-cloud').innerHTML = '<span style="color:var(--muted);font-size:13px">Sem comentários no período.</span>'; return; }
+
+  const max = sorted[0][1], min = sorted[sorted.length-1][1];
+  const clrs = ['#00d4ff','#10b981','#7c3aed','#f59e0b','#ec4899','#60a5fa','#34d399','#a78bfa'];
+  const wc = document.getElementById('word-cloud');
+  wc.innerHTML = sorted.map(([w, c], i) => {
+    const size = 11 + Math.round((c - min) / Math.max(max - min, 1) * 18);
+    const clr  = clrs[i % clrs.length];
+    const op   = 0.5 + (c - min) / Math.max(max - min, 1) * 0.5;
+    return `<span class="word-tag" style="font-size:${size}px;background:${clr}18;color:${clr};opacity:${op};border:1px solid ${clr}44">${w} <span style="font-size:10px;opacity:0.7">${c}</span></span>`;
+  }).join('');
+}
+
+// ─── COMMENTS ───
+function renderComments(data) {
+  const searchTerm = document.getElementById('comment-search').value.toLowerCase();
+  if (!data || typeof data === 'object' && data.type === 'input') data = getFiltered();
+
+  const list = document.getElementById('comments-list');
+  const comments = data
+    .filter(d => d.P05 && d.P05.trim() && d.P05.length > 5)
+    .filter(d => !searchTerm || d.P05.toLowerCase().includes(searchTerm));
+
+  if (!comments.length) { list.innerHTML = '<div style="color:var(--muted);font-size:13px;padding:12px">Nenhum comentário encontrado.</div>'; return; }
+
+  list.innerHTML = comments.slice(0, 80).map(d => `
+    <div class="comment-item">
+      ${d.P05.trim()}
+      <div class="comment-unit">${d.unidade}</div>
+    </div>
+  `).join('');
+}
+</script>
+</body>
+</html>

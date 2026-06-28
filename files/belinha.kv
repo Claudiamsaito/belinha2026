@@ -1,0 +1,329 @@
+
+WindowManager:
+    WelcomeScreen:
+    InstrucoesScreen:
+    MapaScreen:
+    CaminhosScreen:
+    QrCodeScreen:
+    FormularioScreen:
+    WhatsappScreen:
+    SobreScreen:
+    AvaliacaoScreen:
+    ConclusaoScreen:
+
+<WelcomeScreen>:
+    name: 'welcome'
+
+    FloatLayout:
+        canvas.before:
+            Color:
+                rgba: 241/255, 248/255, 233/255, 1 # F1F8E9
+            Rectangle:
+                pos: self.pos
+                size: self.size
+
+        Image:
+            source: '/home/ubuntu/projects/game-belinha-santa-casa-de-ilhab-e1e3b798/logopng.png'
+            size_hint: None, None
+            size: "120dp", "120dp"
+            pos_hint: {'center_x': 0.5, 'top': 0.95}
+
+        Image:
+            source: '/home/ubuntu/projects/game-belinha-santa-casa-de-ilhab-e1e3b798/Belinhasemfundo.png'
+            size_hint: None, None
+            size: "250dp", "250dp"
+            pos_hint: {'center_x': 0.5, 'center_y': 0.6}
+
+        Label:
+            text: 'Missão Saúde Ilhabela'
+            font_size: '28sp'
+            bold: True
+            color: 46/255, 125/255, 50/255, 1 # 2E7D32
+            pos_hint: {'center_x': 0.5, 'top': 0.4}
+
+        Label:
+            text: 'O Ciclo da Melhoria com a Belinha'
+            font_size: '18sp'
+            color: 84/255, 110/255, 122/255, 1 # 546E7A
+            pos_hint: {'center_x': 0.5, 'top': 0.35}
+
+        Button:
+            text: 'Iniciar Missão'
+            size_hint: 0.8, 0.1
+            pos_hint: {'center_x': 0.5, 'center_y': 0.2}
+            background_color: 46/255, 125/255, 50/255, 1 # 2E7D32
+            on_release: app.root.current = 'instrucoes'
+
+        Button:
+            text: 'Sobre a Santa Casa'
+            size_hint: 0.8, 0.1
+            pos_hint: {'center_x': 0.5, 'center_y': 0.1}
+            background_color: 0, 0, 0, 0 # Transparent
+            color: 21/255, 101/255, 192/255, 1 # 1565C0
+            on_release: app.root.current = 'sobre'
+
+<InstrucoesScreen>:
+    name: 'instrucoes'
+
+    FloatLayout:
+        canvas.before:
+            Color:
+                rgba: 241/255, 248/255, 233/255, 1 # F1F8E9
+            Rectangle:
+                pos: self.pos
+                size: self.size
+
+        Image:
+            source: '/home/ubuntu/projects/game-belinha-santa-casa-de-ilhab-e1e3b798/logopng.png'
+            size_hint: None, None
+            size: "80dp", "80dp"
+            pos_hint: {'center_x': 0.5, 'top': 0.98}
+
+        Label:
+            text: 'Passo 1 de 6: Como funciona a Missão'
+            size_hint_y: None
+            height: self.texture_size[1]
+            pos_hint: {'top': 0.9}
+            color: 84/255, 110/255, 122/255, 1
+
+        ScrollView:
+            size_hint: 1, 0.8
+            pos_hint: {'center_x': 0.5, 'y': 0.1}
+            do_scroll_x: False
+
+            GridLayout:
+                cols: 1
+                size_hint_y: None
+                height: self.minimum_height
+                padding: '10dp'
+                spacing: '15dp'
+
+                # Mensagem da Belinha
+                BoxLayout:
+                    orientation: 'horizontal'
+                    size_hint_y: None
+                    height: '120dp'
+                    Image:
+                        source: '/home/ubuntu/projects/game-belinha-santa-casa-de-ilhab-e1e3b798/Belinhasemfundo.png'
+                        size_hint_x: 0.4
+                    Label:
+                        text: 'Antes de começarmos, deixa eu te explicar como funciona nossa Missão Saúde! É simples, rápido e muito importante para melhorar o atendimento de toda a ilha! 🌟'
+                        text_size: self.width, None
+                        valign: 'middle'
+                        color: 0,0,0,1
+
+                Label:
+                    text: 'Como funciona?'
+                    font_size: '24sp'
+                    bold: True
+                    color: 46/255, 125/255, 50/255, 1
+                    size_hint_y: None
+                    height: self.texture_size[1]
+
+                Label:
+                    text: 'Em apenas 4 passos simples, você ajuda a transformar a saúde de Ilhabela:'
+                    color: 84/255, 110/255, 122/255, 1
+                    text_size: self.width, None
+                    size_hint_y: None
+                    height: self.texture_size[1]
+
+                # Passos
+                GridLayout:
+                    cols: 1
+                    spacing: '10dp'
+                    size_hint_y: None
+                    height: self.minimum_height
+
+                    # Passo 1
+                    BoxLayout:
+                        Label:
+                            text: '1. 🗺️ Conheça nossa rede: Veja todas as unidades da Santa Casa em Ilhabela onde você pode avaliar.'
+                            color: 0,0,0,1
+                    # Passo 2
+                    BoxLayout:
+                        Label:
+                            text: '2. 📋 Escolha seu caminho: QR Code, formulário impresso ou WhatsApp — você decide como avaliar!'
+                            color: 0,0,0,1
+                    # Passo 3
+                    BoxLayout:
+                        Label:
+                            text: '3. ✅ Responda o questionário: São poucas perguntas rápidas sobre o atendimento que você recebeu.'
+                            color: 0,0,0,1
+                    # Passo 4
+                    BoxLayout:
+                        Label:
+                            text: '4. 🏆 Ganhe seu Selo!: Ao concluir, você recebe o Selo de Amigo da Saúde de Ilhabela.'
+                            color: 0,0,0,1
+
+                # Importância
+                BoxLayout:
+                    orientation: 'vertical'
+                    Label:
+                        text: '💡 Por que isso importa?'
+                        font_size: '18sp'
+                        bold: True
+                        color: 46/255, 125/255, 50/255, 1
+                    Label:
+                        text: 'Cada resposta vai direto para a equipe da Santa Casa. Com base nas suas avaliações, melhoramos o atendimento, a limpeza, a estrutura e muito mais — para você e para toda a comunidade de Ilhabela!'
+                        text_size: self.width, None
+                        color: 0,0,0,1
+
+                # Garantias
+                BoxLayout:
+                    orientation: 'vertical'
+                    Label:
+                        text: '🔒 Suas garantias:'
+                        font_size: '18sp'
+                        bold: True
+                        color: 0,0,0,1
+                    Label:
+                        text: '✓ Anônimo — ninguém saberá quem respondeu\n✓ Rápido — menos de 2 minutos para completar\n✓ Seguro — dados protegidos pela Santa Casa\n✓ Gratuito — sem custo algum para você'
+                        text_size: self.width, None
+                        color: 0,0,0,1
+
+        Button:
+            text: '🚀 Entendi! Vamos começar'
+            size_hint: 0.8, 0.08
+            pos_hint: {'center_x': 0.5, 'y': 0.02}
+            background_color: 46/255, 125/255, 50/255, 1
+            on_release: app.root.current = 'mapa'
+
+<MapaScreen>:
+    name: 'mapa'
+
+    FloatLayout:
+        canvas.before:
+            Color:
+                rgba: 241/255, 248/255, 233/255, 1 # F1F8E9
+            Rectangle:
+                pos: self.pos
+                size: self.size
+
+        Image:
+            source: '/home/ubuntu/projects/game-belinha-santa-casa-de-ilhab-e1e3b798/logopng.png'
+            size_hint: None, None
+            size: "80dp", "80dp"
+            pos_hint: {'center_x': 0.5, 'top': 0.98}
+
+        Label:
+            text: 'Passo 2 de 6: Conheça nossa rede'
+            size_hint_y: None
+            height: self.texture_size[1]
+            pos_hint: {'top': 0.9}
+            color: 84/255, 110/255, 122/255, 1
+
+        ScrollView:
+            size_hint: 1, 0.8
+            pos_hint: {'center_x': 0.5, 'y': 0.1}
+            do_scroll_x: False
+
+            GridLayout:
+                id: unidades_grid
+                cols: 1
+                size_hint_y: None
+                height: self.minimum_height
+                padding: '10dp'
+                spacing: '10dp'
+
+        Button:
+            text: 'Continuar'
+            size_hint: 0.8, 0.08
+            pos_hint: {'center_x': 0.5, 'y': 0.02}
+            background_color: 46/255, 125/255, 50/255, 1
+            on_release: app.root.current = 'caminhos'
+_content
+
+<CaminhosScreen>:
+    name: 'caminhos'
+
+    FloatLayout:
+        canvas.before:
+            Color:
+                rgba: 241/255, 248/255, 233/255, 1 # F1F8E9
+            Rectangle:
+                pos: self.pos
+                size: self.size
+
+        Image:
+            source: '/home/ubuntu/projects/game-belinha-santa-casa-de-ilhab-e1e3b798/logopng.png'
+            size_hint: None, None
+            size: "80dp", "80dp"
+            pos_hint: {'center_x': 0.5, 'top': 0.98}
+
+        Label:
+            text: 'Passo 3 de 6: Escolha seu caminho'
+            size_hint_y: None
+            height: self.texture_size[1]
+            pos_hint: {'top': 0.9}
+            color: 84/255, 110/255, 122/255, 1
+
+        ScrollView:
+            size_hint: 1, 0.8
+            pos_hint: {'center_x': 0.5, 'y': 0.1}
+            do_scroll_x: False
+
+            GridLayout:
+                cols: 1
+                size_hint_y: None
+                height: self.minimum_height
+                padding: '10dp'
+                spacing: '15dp'
+
+                # Mensagem da Belinha
+                BoxLayout:
+                    orientation: 'horizontal'
+                    size_hint_y: None
+                    height: '120dp'
+                    Image:
+                        source: '/home/ubuntu/projects/game-belinha-santa-casa-de-ilhab-e1e3b798/Belinhasemfundo.png'
+                        size_hint_x: 0.4
+                    Label:
+                        text: 'Oi de novo! Para o nosso Ciclo da Melhoria começar, eu preciso te mostrar como abrir o seu formulário de opiniões. É super simples e você escolhe o jeito que achar mais fácil! 😊'
+                        text_size: self.width, None
+                        valign: 'middle'
+                        color: 0,0,0,1
+
+                Label:
+                    text: 'Como você quer avaliar?'
+                    font_size: '22sp'
+                    bold: True
+                    color: 0,0,0,1
+                    size_hint_y: None
+                    height: self.texture_size[1]
+
+                # Botões de Caminho
+                Button:
+                    text: '📱 QR Code'
+                    on_release: app.root.current = 'qrcode'
+                    background_color: 227/255, 242/255, 253/255, 1
+                    color: 21/255, 101/255, 192/255, 1
+                Button:
+                    text: '📋 Formulário Impresso'
+                    on_release: app.root.current = 'formulario'
+                    background_color: 255/255, 243/255, 224/255, 1
+                    color: 230/255, 81/255, 0/255, 1
+                Button:
+                    text: '💬 WhatsApp'
+                    on_release: app.root.current = 'whatsapp'
+                    background_color: 232/255, 245/255, 233/255, 1
+                    color: 27/255, 94/255, 32/255, 1
+
+                # Resumo
+                BoxLayout:
+                    orientation: 'vertical'
+                    padding: '10dp'
+                    Label:
+                        text: '📌 Resumo rápido:'
+                        bold: True
+                        color: 0,0,0,1
+                    Label:
+                        text: '📱 QR Code — Para avaliar recepção e limpeza\n📋 Formulário — Para quem prefere papel\n💬 WhatsApp — Para avaliar o médico após a consulta'
+                        color: 0,0,0,1
+
+        Button:
+            text: 'Voltar'
+            size_hint: 0.8, 0.08
+            pos_hint: {'center_x': 0.5, 'y': 0.02}
+            background_color: 0.8, 0.8, 0.8, 1
+            on_release: app.root.current = 'mapa'
+_content
